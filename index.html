@@ -32,16 +32,16 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 
 /* NAV */
 .nav{background:var(–card);border-top:1px solid var(–border);display:flex;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0px)}
-.nav-btn{flex:1;padding:8px 4px 6px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:10px;color:var(–muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+.nav-btn{flex:1;padding:10px 4px 10px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:11px;color:var(–muted);display:flex;flex-direction:column;align-items:center;gap:3px;min-height:60px}
 .nav-btn.active{color:var(–accent)}
-.nav-ic{font-size:20px;line-height:1}
+.nav-ic{font-size:24px;line-height:1}
 
 /* CALENDAR */
 .cal-hdr{background:var(–card);border-bottom:1px solid var(–border);padding:10px 16px;text-align:center;font-size:16px;font-weight:600}
 .wk-row{display:grid;grid-template-columns:repeat(7,1fr);background:var(–card);border-bottom:1px solid var(–border)}
 .wk-lbl{text-align:center;font-size:11px;color:var(–muted);padding:6px 0}
 .wk-lbl.sun{color:var(–red)}.wk-lbl.sat{color:var(–accent)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);background:var(–border);gap:1px;border-top:1px solid var(–border)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);background:#888;gap:2px;border-top:2px solid #888;border-left:2px solid #888;border-right:2px solid #888;border-bottom:2px solid #888}
 .cc{background:var(–card);min-height:70px;padding:4px 5px;cursor:pointer;position:relative;overflow:hidden}
 .cc.empty{background:#e8e8ed;cursor:default}
 .cc.sunday{background:#fff5f5}.cc.saturday{background:#f0f5ff}
@@ -65,7 +65,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .ri-sub{font-size:11px;color:var(–muted);margin-top:1px}
 .ri-amt{font-size:15px;font-weight:700}
 .ri-amt.out{color:var(–red)}.ri-amt.in{color:var(–green)}
-.ri-del{border:none;background:none;color:var(–muted);font-size:18px;cursor:pointer;padding:4px;margin-left:6px}
+.ri-edit{border:1.5px solid var(–accent);background:none;color:var(–accent);font-size:12px;font-weight:700;cursor:pointer;padding:4px 10px;border-radius:7px;font-family:inherit;margin-left:4px}
+.ri-del{border:1.5px solid var(–red);background:none;color:var(–red);font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px;border-radius:7px;margin-left:2px}
 
 /* INPUT */
 .ip{padding:16px 16px 24px}
@@ -79,7 +80,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .seg{display:flex;background:#e5e5ea;border-radius:9px;padding:2px;margin:10px 14px}
 .sbtn{flex:1;padding:6px;border:none;background:none;font-family:inherit;font-size:13px;font-weight:500;color:var(–muted);border-radius:7px;cursor:pointer;transition:all .15s}
 .sbtn.aout{background:var(–red);color:#fff}.sbtn.ain{background:var(–green);color:#fff}
-.save-btn{width:100%;padding:14px;background:var(–accent);color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer}
+.save-btn{width:100%;padding:14px;background:var(–accent);color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;transition:background .2s}
+.save-btn:disabled{background:#c7c7cc;cursor:default}
 
 /* ANALYSIS */
 .ap{padding:14px 14px 24px}
@@ -159,8 +161,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .fi-name{font-size:14px;font-weight:600}
 .fi-meta{font-size:11px;color:var(–muted);margin-top:2px}
 .fi-amt{font-size:14px;font-weight:700;color:var(–purple);margin-right:4px}
-.fi-edit{border:none;background:none;color:var(–accent);font-size:13px;cursor:pointer;padding:5px 8px;font-family:inherit}
-.fi-del{border:none;background:none;color:var(–red);font-size:18px;cursor:pointer;padding:5px 4px}
+.fi-edit{border:1.5px solid var(–accent);background:none;color:var(–accent);font-size:12px;font-weight:700;cursor:pointer;padding:4px 10px;border-radius:7px;font-family:inherit}
+.fi-del{border:1.5px solid var(–red);background:none;color:var(–red);font-size:13px;font-weight:700;cursor:pointer;padding:4px 8px;border-radius:7px}
 .fi-empty{font-size:13px;color:var(–muted);text-align:center;padding:16px 0}
 
 /* Fixed add form */
@@ -170,7 +172,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .fi-form-row label{font-size:13px;color:var(–muted);width:60px;flex-shrink:0}
 .fi-form-row input,.fi-form-row select{flex:1;border:1px solid var(–border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:14px;background:var(–bg);outline:none;color:var(–text)}
 .fi-form-row .unit{font-size:12px;color:var(–muted);flex-shrink:0}
-.fi-add-btn{width:100%;padding:11px;background:var(–purple);color:#fff;border:none;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px}
+.fi-add-btn{width:100%;padding:11px;background:var(–accent);color:#fff;border:none;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;transition:background .2s}
+.fi-add-btn:disabled{background:#c7c7cc;cursor:default}
 .fi-add-btn.editing{background:var(–orange)}
 
 /* edit modal overlay */
@@ -185,15 +188,17 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .modal-btns{display:flex;gap:8px;margin-top:14px}
 .modal-btns button{flex:1;padding:12px;border:none;border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
 .modal-cancel{background:#e5e5ea;color:var(–text)}
-.modal-save{background:var(–orange);color:#fff}
+.modal-save{background:var(–accent);color:#fff}
 
 /* Master settings */
 .sfull{display:flex;flex-direction:column;gap:8px;padding:12px 14px}
 .sfull label{font-size:12px;color:var(–muted)}
 .sfull input,.sfull textarea,.sfull select{border:1px solid var(–border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:14px;background:var(–bg);outline:none;width:100%;color:var(–text)}
 .sfull textarea{resize:none;min-height:40px}
-.sbtn2{width:100%;padding:12px;border:none;border-radius:10px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px}
+.sbtn2{width:100%;padding:12px;border:none;border-radius:10px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;transition:background .2s}
 .sbtn2.blue{background:var(–accent);color:#fff}
+.sbtn2.blue:disabled{background:#c7c7cc;cursor:default}
+.sbtn2.green{background:var(–green);color:#fff}
 .sbtn2.gray{background:#e5e5ea;color:var(–text)}
 
 /* bento */
@@ -210,7 +215,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .bcd.reg{background:#e8f5e9;border-color:#a5d6a7}
 .bcd.tod{border:2px solid var(–accent)}
 .bcount{font-size:13px;color:var(–muted);text-align:center;margin-bottom:10px}
-.breg{width:100%;padding:12px;background:#5c4033;color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.breg{width:100%;padding:12px;background:var(–accent);color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}
 
 .toast{position:fixed;bottom:68px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(0,0,0,.8);color:#fff;padding:9px 20px;border-radius:20px;font-size:13px;opacity:0;transition:all .25s;z-index:999;white-space:nowrap;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -220,7 +225,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 <body>
 <div class="toast" id="toast"></div>
 
-<!-- EDIT MODAL -->
+<!-- EDIT MODAL (固定費) -->
 
 <div class="modal-overlay" id="edit-modal" onclick="closeModal(event)">
   <div class="modal-box">
@@ -235,6 +240,33 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     <div class="modal-btns">
       <button class="modal-cancel" onclick="closeModalDirect()">キャンセル</button>
       <button class="modal-save" onclick="saveEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECORD EDIT MODAL -->
+
+<div class="modal-overlay" id="rec-modal" onclick="closeRecModal(event)">
+  <div class="modal-box">
+    <div class="modal-title">支出を編集</div>
+    <input type="hidden" id="rec-modal-idx">
+    <div class="modal-row">
+      <label>種別</label>
+      <div style="display:flex;gap:6px;flex:1;justify-content:flex-end">
+        <button id="rec-tab-out" onclick="setRecType('out')" style="padding:5px 14px;border-radius:7px;border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;background:var(--red);color:#fff">支出</button>
+        <button id="rec-tab-in"  onclick="setRecType('in')"  style="padding:5px 14px;border-radius:7px;border:1px solid var(--border);font-family:inherit;font-size:13px;cursor:pointer;background:none;color:var(--muted)">収入</button>
+      </div>
+    </div>
+    <input type="hidden" id="rec-type-val">
+    <div class="modal-row"><label>日付</label><input type="date" id="rec-date"></div>
+    <div class="modal-row"><label>タイトル</label><input type="text" id="rec-title" placeholder="例: ランチ"></div>
+    <div class="modal-row"><label>金額</label><input type="number" id="rec-amt" placeholder="0" min="0"><span class="unit">円</span></div>
+    <div class="modal-row"><label>ジャンル</label><select id="rec-genre"></select></div>
+    <div class="modal-row"><label>支払い</label><select id="rec-pay"></select></div>
+    <div class="modal-row"><label>メモ</label><input type="text" id="rec-memo" placeholder="任意"></div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeRecModalDirect()">キャンセル</button>
+      <button class="modal-save" onclick="saveRecEdit()">保存</button>
     </div>
   </div>
 </div>
@@ -291,11 +323,11 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       <div class="sc"><div class="sl">変動費</div><div class="sv" style="color:var(--red)" id="ana-var">¥0</div></div>
     </div>
     <div class="bcard">
-      <div class="btop"><div class="blbl">💰 月予算</div><div class="bpct" id="b-pct">-</div></div>
+      <div class="btop"><div class="blbl">💰 お小遣い予算（固定費除く）</div><div class="bpct" id="b-pct">-</div></div>
       <div class="btrack"><div class="bfill" id="b-fill" style="width:0%"></div></div>
       <div class="bsub" id="b-sub">予算未設定</div>
       <div class="bset">
-        <input type="number" id="b-inp" placeholder="例: 100000" min="0">
+        <input type="number" id="b-inp" placeholder="例: 30000" min="0">
         <span class="unit">円</span>
         <button class="bset-btn" onclick="saveBudget()">保存</button>
       </div>
@@ -303,6 +335,10 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     <div class="gcard">
       <div class="gcard-t">ジャンル別支出</div>
       <div id="genre-bd"></div>
+    </div>
+    <div class="gcard">
+      <div class="gcard-t">💳 支払い方法別支出</div>
+      <div id="pay-bd-m"></div>
     </div>
   </div>
   <div id="ana-a" style="display:none">
@@ -332,6 +368,10 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       <div class="mtcard-t">月別一覧</div>
       <div id="ann-table"></div>
     </div>
+    <div class="gcard">
+      <div class="gcard-t">💳 支払い方法別支出（年間）</div>
+      <div id="pay-bd-a"></div>
+    </div>
   </div>
 </div>
 </div>
@@ -350,13 +390,13 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   <div class="icard">
     <div class="icard-t">内容</div>
     <div class="irow"><div class="ilbl">日付</div><input class="ictrl" type="date" id="i-date"></div>
-    <div class="irow"><div class="ilbl">タイトル</div><input class="ictrl" type="text" id="i-title" placeholder="例: ランチ"></div>
+    <div class="irow"><div class="ilbl">タイトル</div><input class="ictrl" type="text" id="i-title" placeholder="例: ランチ" oninput="checkSaveBtn()"></div>
     <div class="irow"><div class="ilbl">ジャンル</div><select class="ictrl" id="i-genre"></select></div>
     <div class="irow"><div class="ilbl">支払い</div><select class="ictrl" id="i-pay"></select></div>
-    <div class="irow"><div class="ilbl">金額</div><input class="ictrl" type="number" id="i-amt" placeholder="0" min="0"></div>
+    <div class="irow"><div class="ilbl">金額</div><input class="ictrl" type="number" id="i-amt" placeholder="0" min="0" oninput="checkSaveBtn()"></div>
     <div class="irow"><div class="ilbl">メモ</div><input class="ictrl" type="text" id="i-memo" placeholder="任意"></div>
   </div>
-  <button class="save-btn" onclick="saveRecord()">保存する</button>
+  <button class="save-btn" id="save-btn" onclick="saveRecord()" disabled>保存する</button>
 </div>
 </div>
 
@@ -380,11 +420,11 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   <div class="fi-list" id="fi-monthly-list"></div>
   <div class="fi-form">
     <div class="fi-form-title" id="fi-form-title-m">＋ 月払いを追加</div>
-    <div class="fi-form-row"><label>名前</label><input type="text" id="fim-name" placeholder="例: 家賃"></div>
-    <div class="fi-form-row"><label>金額</label><input type="number" id="fim-amt" placeholder="0" min="0"><span class="unit">円</span></div>
-    <div class="fi-form-row"><label>毎月</label><input type="number" id="fim-day" placeholder="25" min="1" max="31"><span class="unit">日</span></div>
+    <div class="fi-form-row"><label>名前</label><input type="text" id="fim-name" placeholder="例: 家賃" oninput="checkFixedBtn('m')"></div>
+    <div class="fi-form-row"><label>金額</label><input type="number" id="fim-amt" placeholder="0" min="0" oninput="checkFixedBtn('m')"><span class="unit">円</span></div>
+    <div class="fi-form-row"><label>毎月</label><input type="number" id="fim-day" placeholder="25" min="1" max="31" oninput="checkFixedBtn('m')"><span class="unit">日</span></div>
     <div class="fi-form-row"><label>支払い</label><select id="fim-pay"></select></div>
-    <button class="fi-add-btn" onclick="addFixed('m')">追加する</button>
+    <button class="fi-add-btn" id="fim-btn" onclick="addFixed('m')" disabled>追加する</button>
   </div>
 </div>
 
@@ -393,12 +433,12 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   <div class="fi-list" id="fi-yearly-list"></div>
   <div class="fi-form">
     <div class="fi-form-title">＋ 年払いを追加</div>
-    <div class="fi-form-row"><label>名前</label><input type="text" id="fiy-name" placeholder="例: 自動車保険"></div>
-    <div class="fi-form-row"><label>金額</label><input type="number" id="fiy-amt" placeholder="0" min="0"><span class="unit">円</span></div>
+    <div class="fi-form-row"><label>名前</label><input type="text" id="fiy-name" placeholder="例: 自動車保険" oninput="checkFixedBtn('y')"></div>
+    <div class="fi-form-row"><label>金額</label><input type="number" id="fiy-amt" placeholder="0" min="0" oninput="checkFixedBtn('y')"><span class="unit">円</span></div>
     <div class="fi-form-row"><label>月</label><select id="fiy-month"></select></div>
-    <div class="fi-form-row"><label>日</label><input type="number" id="fiy-day" placeholder="1" min="1" max="31"><span class="unit">日</span></div>
+    <div class="fi-form-row"><label>日</label><input type="number" id="fiy-day" placeholder="1" min="1" max="31" oninput="checkFixedBtn('y')"><span class="unit">日</span></div>
     <div class="fi-form-row"><label>支払い</label><select id="fiy-pay"></select></div>
-    <button class="fi-add-btn" onclick="addFixed('y')">追加する</button>
+    <button class="fi-add-btn" id="fiy-btn" onclick="addFixed('y')" disabled>追加する</button>
   </div>
 </div>
 ```
@@ -411,13 +451,13 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   <div class="scard">
     <div class="sfull">
       <label>クレカ（名称:締:払 カンマ区切り）</label>
-      <input type="text" id="s-cards" placeholder="リクルート:15:10,楽天:27:翌27">
+      <input type="text" id="s-cards" placeholder="リクルート:15:10,楽天:27:翌27" oninput="checkMasterBtn()">
       <label>支払い方法（カンマ区切り）</label>
-      <input type="text" id="s-pays" placeholder="現金, クレカ, PayPay">
+      <input type="text" id="s-pays" placeholder="現金, クレカ, PayPay" oninput="checkMasterBtn()">
       <label>ジャンル（カンマ区切り）</label>
-      <textarea id="s-genres" rows="2" placeholder="食費, 外食, 交通費, ..."></textarea>
+      <textarea id="s-genres" rows="2" placeholder="食費, 外食, 交通費, ..." oninput="checkMasterBtn()"></textarea>
     </div>
-    <div style="padding:0 14px 14px"><button class="sbtn2 blue" onclick="saveMaster()">設定を更新</button></div>
+    <div style="padding:0 14px 14px"><button class="sbtn2 blue" id="master-btn" onclick="saveMaster()" disabled>設定を更新</button></div>
   </div>
 
   <!-- 一括入力カテゴリ設定 -->
@@ -427,12 +467,12 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     <div class="fi-list" id="bulk-cat-list"></div>
     <div class="fi-form">
       <div class="fi-form-title">＋ カテゴリを追加</div>
-      <div class="fi-form-row"><label>名前</label><input type="text" id="bc-name" placeholder="例: 弁当代"></div>
+      <div class="fi-form-row"><label>名前</label><input type="text" id="bc-name" placeholder="例: 弁当代" oninput="checkBulkCatBtn()"></div>
       <div class="fi-form-row"><label>絵文字</label><input type="text" id="bc-emoji" placeholder="例: 🍱" maxlength="2" style="width:60px;flex:none"></div>
-      <div class="fi-form-row"><label>単価</label><input type="number" id="bc-price" placeholder="500" min="0"><span class="unit">円</span></div>
+      <div class="fi-form-row"><label>単価</label><input type="number" id="bc-price" placeholder="500" min="0" oninput="checkBulkCatBtn()"><span class="unit">円</span></div>
       <div class="fi-form-row"><label>ジャンル</label><select id="bc-genre"></select></div>
       <div class="fi-form-row"><label>支払い</label><select id="bc-pay"></select></div>
-      <button class="fi-add-btn" onclick="addBulkCat()">追加する</button>
+      <button class="fi-add-btn" id="bc-btn" onclick="addBulkCat()" disabled>追加する</button>
     </div>
   </div>
 
@@ -601,7 +641,8 @@ function showDP(ds,d){
       <div class="ri-ic" style="background:${gc(r.genre)}20">${ge(r.genre)}</div>
       <div class="ri-info"><div class="ri-name">${r.title}</div><div class="ri-sub">${r.genre}・${r.payment}${r.memo?' ・ '+r.memo:''}</div></div>
       <div class="ri-amt ${r.type}">${r.type==='out'?'-':'+'} ¥${r.amount.toLocaleString()}</div>
-      <button class="ri-del" onclick="delRec(${records.indexOf(r)})">✕</button>
+      <button class="ri-edit" onclick="openRecEdit(${records.indexOf(r)})">編集</button>
+      <button class="ri-del" onclick="delRec(${records.indexOf(r)})">削除</button>
     </div>`).join('');
   }
   document.getElementById('day-panel').style.display='block';
@@ -614,6 +655,59 @@ function delRec(i){
   renderCal();
   if(selDay) showDP(selDay,parseInt(selDay.split('-')[2]));
 }
+
+function openRecEdit(i){
+  const r=records[i];
+  if(!r)return;
+  const gs=master.genres,ps=master.payments;
+  document.getElementById('rec-genre').innerHTML=gs.map(g=>`<option>${g}</option>`).join('');
+  document.getElementById('rec-pay').innerHTML=ps.map(p=>`<option>${p}</option>`).join('');
+  document.getElementById('rec-modal-idx').value=i;
+  document.getElementById('rec-date').value=r.date;
+  document.getElementById('rec-title').value=r.title;
+  document.getElementById('rec-amt').value=r.amount;
+  document.getElementById('rec-genre').value=r.genre;
+  document.getElementById('rec-pay').value=r.payment;
+  document.getElementById('rec-memo').value=r.memo||'';
+  setRecType(r.type);
+  document.getElementById('rec-modal').classList.add('show');
+}
+function setRecType(t){
+  document.getElementById('rec-type-val').value=t;
+  const outBtn=document.getElementById('rec-tab-out');
+  const inBtn =document.getElementById('rec-tab-in');
+  outBtn.style.background=t==='out'?'var(--red)':'none';
+  outBtn.style.color=t==='out'?'#fff':'var(--muted)';
+  outBtn.style.border=t==='out'?'none':'1px solid var(--border)';
+  inBtn.style.background=t==='in'?'var(--green)':'none';
+  inBtn.style.color=t==='in'?'#fff':'var(--muted)';
+  inBtn.style.border=t==='in'?'none':'1px solid var(--border)';
+}
+function saveRecEdit(){
+  const i=parseInt(document.getElementById('rec-modal-idx').value);
+  const date=document.getElementById('rec-date').value;
+  const title=document.getElementById('rec-title').value.trim();
+  const amt=parseInt(document.getElementById('rec-amt').value)||0;
+  const genre=document.getElementById('rec-genre').value;
+  const payment=document.getElementById('rec-pay').value;
+  const memo=document.getElementById('rec-memo').value.trim();
+  const type=document.getElementById('rec-type-val').value;
+  if(!date||!title||!amt){toast('日付・タイトル・金額は必須です');return;}
+  records[i]={...records[i],date,title,amount:amt,genre,payment,memo,type};
+  sv('kk_records',records);
+  closeRecModalDirect();
+  renderCal();
+  // 日付が変わった場合は元のパネルを閉じる、同じ日ならリフレッシュ
+  if(selDay===date){
+    showDP(date,parseInt(date.split('-')[2]));
+  } else {
+    document.getElementById('day-panel').style.display='none';
+    selDay=null;
+  }
+  toast('更新しました ✓');
+}
+function closeRecModal(e){if(e.target===document.getElementById('rec-modal'))closeRecModalDirect();}
+function closeRecModalDirect(){document.getElementById('rec-modal').classList.remove('show');}
 
 // ===== INPUT =====
 function applyMaster(){
@@ -631,6 +725,38 @@ function applyMaster(){
   if(document.getElementById('s-pays')) document.getElementById('s-pays').value=ps.join(', ');
   if(document.getElementById('s-genres')) document.getElementById('s-genres').value=gs.join(', ');
   if(document.getElementById('s-cards')) document.getElementById('s-cards').value=(master.cards||[]).join(', ');
+  // マスターボタンは内容があれば有効化
+  const mb=document.getElementById('master-btn');
+  if(mb) mb.disabled=!(ps.length>0||gs.length>0);
+}
+function checkSaveBtn(){
+  const title=document.getElementById('i-title').value.trim();
+  const amt=parseInt(document.getElementById('i-amt').value)||0;
+  const btn=document.getElementById('save-btn');
+  btn.disabled=!(title&&amt>0);
+}
+function checkFixedBtn(type){
+  if(type==='m'){
+    const ok=document.getElementById('fim-name').value.trim()&&
+             (parseInt(document.getElementById('fim-amt').value)||0)>0&&
+             (parseInt(document.getElementById('fim-day').value)||0)>0;
+    document.getElementById('fim-btn').disabled=!ok;
+  } else {
+    const ok=document.getElementById('fiy-name').value.trim()&&
+             (parseInt(document.getElementById('fiy-amt').value)||0)>0&&
+             (parseInt(document.getElementById('fiy-day').value)||0)>0;
+    document.getElementById('fiy-btn').disabled=!ok;
+  }
+}
+function checkMasterBtn(){
+  const pays=document.getElementById('s-pays').value.trim();
+  const genres=document.getElementById('s-genres').value.trim();
+  document.getElementById('master-btn').disabled=!(pays||genres);
+}
+function checkBulkCatBtn(){
+  const ok=document.getElementById('bc-name').value.trim()&&
+           (parseInt(document.getElementById('bc-price').value)||0)>0;
+  document.getElementById('bc-btn').disabled=!ok;
 }
 function setType(t){
   curType=t;
@@ -650,6 +776,7 @@ function saveRecord(){
   document.getElementById('i-title').value='';
   document.getElementById('i-amt').value='';
   document.getElementById('i-memo').value='';
+  document.getElementById('save-btn').disabled=true;
   toast('保存しました ✓');
   showPage('cal');
 }
@@ -679,12 +806,14 @@ function renderM(){
   document.getElementById('ana-var').textContent='¥'+(out-fx).toLocaleString();
   const budget=budgets[key]||0;
   document.getElementById('b-inp').value=budget||'';
+  // 予算比較は固定費を除いた変動費で行う
+  const varSpend=out-fx;
   if(budget>0){
-    const pct=Math.min(out/budget*100,100),over=out>budget;
+    const pct=Math.min(varSpend/budget*100,100),over=varSpend>budget;
     document.getElementById('b-fill').style.width=pct+'%';
     document.getElementById('b-fill').style.background=over?'var(--red)':pct>80?'var(--orange)':'var(--green)';
-    document.getElementById('b-pct').textContent=Math.round(out/budget*100)+'%';
-    document.getElementById('b-sub').textContent='¥'+out.toLocaleString()+' / ¥'+budget.toLocaleString()+(over?' ⚠ 超過':'');
+    document.getElementById('b-pct').textContent=Math.round(varSpend/budget*100)+'%';
+    document.getElementById('b-sub').textContent='変動費 ¥'+varSpend.toLocaleString()+' / 予算 ¥'+budget.toLocaleString()+(over?' ⚠ 超過':'');
   } else {
     document.getElementById('b-fill').style.width='0%';
     document.getElementById('b-pct').textContent='-';
@@ -702,6 +831,9 @@ function renderM(){
       <div class="gamt" style="color:${gc(g)}">¥${a.toLocaleString()}</div></div>`;
   });
   document.getElementById('genre-bd').innerHTML=h;
+
+  // 支払い方法別
+  renderPayBreakdown(rr.filter(r=>r.type==='out'), 'pay-bd-m');
 }
 function saveBudget(){
   const key=ym(anaY,anaM),val=parseInt(document.getElementById('b-inp').value)||0;
@@ -717,7 +849,7 @@ function renderA(){
     const mO=rr.filter(r=>r.type==='out').reduce((s,r)=>s+r.amount,0);
     const mI=rr.filter(r=>r.type==='in').reduce((s,r)=>s+r.amount,0);
     const mF=rr.filter(r=>r.type==='out'&&r.genre==='固定費').reduce((s,r)=>s+r.amount,0);
-    tO+=mO;tI+=mI;tF+=mF;mv=Math.max(mv,mO,mI);md.push({m,mO,mI,key});
+    tO+=mO;tI+=mI;tF+=mF;mv=Math.max(mv,mO,mI);md.push({m,mO,mI,mF,key});
   }
   document.getElementById('ann-out').textContent='¥'+tO.toLocaleString();
   document.getElementById('ann-in').textContent='収入: ¥'+tI.toLocaleString();
@@ -734,14 +866,51 @@ function renderA(){
   document.getElementById('ann-bars').innerHTML=bh;
   const maxO=Math.max(...md.map(d=>d.mO),1);
   let th='';
-  md.forEach(({m,mO,mI,key})=>{
-    const budget=budgets[key]||0,over=budget>0&&mO>budget;
+  md.forEach(({m,mO,mI,mF,key})=>{
+    const budget=budgets[key]||0;
+    const varSpend=mO-mF;
+    const over=budget>0&&varSpend>budget;
     th+=`<div class="mtr"><div class="mtr-m">${m+1}月</div>
       <div class="mtr-bw"><div class="mtr-bt"><div class="mtr-bf" style="width:${Math.round(mO/maxO*100)}%"></div></div></div>
       <div class="mtr-a">¥${mO.toLocaleString()}</div>
-      <div class="mtr-b">${budget>0?'¥'+budget.toLocaleString():'-'}${over?' <span style="color:var(--red);font-weight:700">⚠</span>':''}</div></div>`;
+      <div class="mtr-b">${budget>0?'変動¥'+varSpend.toLocaleString()+'/予算¥'+budget.toLocaleString():'-'}${over?' <span style="color:var(--red);font-weight:700">⚠</span>':''}</div></div>`;
   });
   document.getElementById('ann-table').innerHTML=th;
+
+  // 支払い方法別（年間）
+  const allAnnRecs=records.filter(r=>r.date.startsWith(annY+'')&&r.type==='out');
+  renderPayBreakdown(allAnnRecs,'pay-bd-a');
+}
+
+// ===== PAYMENT BREAKDOWN =====
+const PAY_COLORS=['#007aff','#34c759','#ff9500','#af52de','#ff3b30','#00c7be','#ff6b35','#5856d6'];
+function renderPayBreakdown(outRecs, elId){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  if(outRecs.length===0){
+    el.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">支出データがありません</div>';
+    return;
+  }
+  const pm={};
+  outRecs.forEach(r=>{pm[r.payment]=(pm[r.payment]||0)+r.amount});
+  const sorted=Object.entries(pm).sort((a,b)=>b[1]-a[1]);
+  const total=sorted.reduce((s,[,v])=>s+v,0);
+  const maxV=sorted[0]?.[1]||1;
+  let h='';
+  sorted.forEach(([pay,amt],i)=>{
+    const col=PAY_COLORS[i%PAY_COLORS.length];
+    const pct=Math.round(amt/total*100);
+    h+=`<div class="grow">
+      <div class="gdot" style="background:${col}"></div>
+      <div class="gname">${pay}</div>
+      <div class="gtrack"><div class="gfill" style="width:${amt/maxV*100}%;background:${col}"></div></div>
+      <div style="text-align:right;min-width:90px">
+        <div class="gamt" style="color:${col}">¥${amt.toLocaleString()}</div>
+        <div style="font-size:10px;color:var(--muted)">${pct}%</div>
+      </div>
+    </div>`;
+  });
+  el.innerHTML=h;
 }
 
 // ===== FIXED COSTS =====
@@ -794,6 +963,7 @@ function addFixed(type){
     document.getElementById('fim-name').value='';
     document.getElementById('fim-amt').value='';
     document.getElementById('fim-day').value='';
+    document.getElementById('fim-btn').disabled=true;
   } else {
     name=document.getElementById('fiy-name').value.trim();
     amt=parseInt(document.getElementById('fiy-amt').value)||0;
@@ -805,6 +975,7 @@ function addFixed(type){
     document.getElementById('fiy-name').value='';
     document.getElementById('fiy-amt').value='';
     document.getElementById('fiy-day').value='';
+    document.getElementById('fiy-btn').disabled=true;
   }
   sv('kk_fixed',fixed);
   renderFixedLists();
@@ -928,6 +1099,7 @@ function addBulkCat(){
   document.getElementById('bc-name').value='';
   document.getElementById('bc-emoji').value='';
   document.getElementById('bc-price').value='';
+  document.getElementById('bc-btn').disabled=true;
   if(!selBulkId){selBulkId=cat.id;}
   renderBulkCatList();
   renderBulkCatBtns();
