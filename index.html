@@ -451,6 +451,11 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   <div class="irow"><div class="ilbl">住民税</div><input class="ictrl" type="number" id="sal-resident-tax" placeholder="0" min="0" oninput="calcSalary()"></div>
 </div>
 <div class="icard">
+  <div class="icard-t">➕ その他控除</div>
+  <div class="irow"><div class="ilbl">会費・積立</div><input class="ictrl" type="number" id="sal-membership" placeholder="0" min="0" oninput="calcSalary()"></div>
+  <div class="irow"><div class="ilbl">その他</div><input class="ictrl" type="number" id="sal-other-deduct" placeholder="弁当代など" min="0" oninput="calcSalary()"></div>
+</div>
+<div class="icard">
   <div class="icard-t">🎁 ボーナス</div>
   <div class="irow"><div class="ilbl">ボーナス額面</div><input class="ictrl" type="number" id="sal-bonus-gross" placeholder="0" min="0" oninput="calcSalary()"></div>
   <div class="irow"><div class="ilbl">ボーナス手取り</div><input class="ictrl" type="number" id="sal-bonus-net" placeholder="0" min="0" oninput="calcSalary()"></div>
@@ -1550,6 +1555,8 @@ function renderSalaryPage(){
   document.getElementById('sal-care').value=d.care||'';
   document.getElementById('sal-income-tax').value=d.incomeTax||'';
   document.getElementById('sal-resident-tax').value=d.residentTax||'';
+  document.getElementById('sal-membership').value=d.membership||'';
+  document.getElementById('sal-other-deduct').value=d.otherDeduct||'';
   document.getElementById('sal-bonus-gross').value=d.bonusGross||'';
   document.getElementById('sal-bonus-net').value=d.bonusNet||'';
   calcSalary();
@@ -1557,7 +1564,7 @@ function renderSalaryPage(){
 
 function calcSalary(){
   const v=id=>parseInt(document.getElementById(id).value)||0;
-  const deduct=v('sal-health')+v('sal-pension')+v('sal-employ')+v('sal-care')+v('sal-income-tax')+v('sal-resident-tax');
+  const deduct=v('sal-health')+v('sal-pension')+v('sal-employ')+v('sal-care')+v('sal-income-tax')+v('sal-resident-tax')+v('sal-membership')+v('sal-other-deduct');
   const netTotal=v('sal-net')+v('sal-bonus-net');
   document.getElementById('sal-deduct-total').textContent='¥'+deduct.toLocaleString();
   document.getElementById('sal-net-total').textContent='¥'+netTotal.toLocaleString();
@@ -1571,6 +1578,7 @@ function saveSalary(){
     health:v('sal-health'),pension:v('sal-pension'),
     employ:v('sal-employ'),care:v('sal-care'),
     incomeTax:v('sal-income-tax'),residentTax:v('sal-resident-tax'),
+    membership:v('sal-membership'),otherDeduct:v('sal-other-deduct'),
     bonusGross:v('sal-bonus-gross'),bonusNet:v('sal-bonus-net')
   };
   sv('kk_salaries',salaries);
@@ -1590,7 +1598,7 @@ function renderSalAnnual(){
     const key=ym(salAnnY,m);
     const d=salaries[key];
     if(!d) continue;
-    const deduct=(d.health||0)+(d.pension||0)+(d.employ||0)+(d.care||0)+(d.incomeTax||0)+(d.residentTax||0);
+    const deduct=(d.health||0)+(d.pension||0)+(d.employ||0)+(d.care||0)+(d.incomeTax||0)+(d.residentTax||0)+(d.membership||0)+(d.otherDeduct||0);
     totalGross+=d.gross||0;
     totalNet+=d.net||0;
     totalDeduct+=deduct;
@@ -1642,7 +1650,7 @@ async function scanSalaryPhoto(e){
           content:[
             {type:'image',source:{type:'base64',media_type:file.type,data:base64}},
             {type:'text',text:`この給与明細の画像から以下の金額を読み取り、JSONのみで返してください。数値は半角数字のみ（カンマなし）。
-{"gross":月給額面,"net":手取り,"health":健康保険,"pension":厚生年金,"employ":雇用保険,"care":介護保険,"incomeTax":所得税,"residentTax":住民税,"bonusGross":ボーナス額面,"bonusNet":ボーナス手取り}
+{"gross":月給額面,"net":手取り,"health":健康保険,"pension":厚生年金,"employ":雇用保険,"care":介護保険,"incomeTax":所得税,"residentTax":住民税,"membership":会費・積立,"otherDeduct":その他控除,"bonusGross":ボーナス額面,"bonusNet":ボーナス手取り}
 不明な項目は0にしてください。JSONのみ返してください。`}
           ]
         }]
@@ -1660,6 +1668,8 @@ async function scanSalaryPhoto(e){
     if(parsed.care)     document.getElementById('sal-care').value=parsed.care;
     if(parsed.incomeTax)      document.getElementById('sal-income-tax').value=parsed.incomeTax;
     if(parsed.residentTax)    document.getElementById('sal-resident-tax').value=parsed.residentTax;
+    if(parsed.membership)     document.getElementById('sal-membership').value=parsed.membership;
+    if(parsed.otherDeduct)    document.getElementById('sal-other-deduct').value=parsed.otherDeduct;
     if(parsed.bonusGross)     document.getElementById('sal-bonus-gross').value=parsed.bonusGross;
     if(parsed.bonusNet)       document.getElementById('sal-bonus-net').value=parsed.bonusNet;
     calcSalary();
