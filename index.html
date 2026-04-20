@@ -320,9 +320,9 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       <div class="btrack"><div class="bfill" id="b-fill" style="width:0%"></div></div>
       <div class="bsub" id="b-sub">予算未設定</div>
       <div class="bset">
-        <input type="number" id="b-inp" placeholder="例: 30000" min="0">
+        <input type="number" id="b-inp" placeholder="例: 30000" min="0" oninput="checkBudgetBtn()">
         <span class="unit">円</span>
-        <button class="bset-btn" onclick="saveBudget()">保存</button>
+        <button class="bset-btn" id="budget-save-btn" onclick="saveBudget()" disabled style="background:#c7c7cc;cursor:default">保存</button>
       </div>
     </div>
     <div class="gcard">
@@ -684,7 +684,9 @@ let salaries = JSON.parse(localStorage.getItem('kk_salaries') || '{}');
 let salY, salM;
 
 let calY,calM,anaY,anaM,annY,bmY,bmM;
+let salSeg='m', salAnnY;
 let bmSel=new Set(),selDay=null,anaSeg='m',ftab='m';
+let payCalcSelM=new Set(), payCalcSelA=new Set();
 const today=new Date();
 
 const GC={'食費':'#ff6b35','弁当代':'#795548','固定費':'#af52de','外食':'#ff9800','趣味':'#00bcd4','旅行・観光':'#009688','交通費':'#2196f3','車':'#607d8b','医療':'#f44336','日用品':'#8bc34a','エンタメ':'#9c27b0','給与':'#34c759','その他':'#9e9e9e'};
@@ -704,11 +706,28 @@ function init(){
   salY=today.getFullYear(); salM=today.getMonth();
   salAnnY=today.getFullYear();
   bmY=today.getFullYear(); bmM=today.getMonth();
+
   // month selects
   ['fiy-month','modal-month'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.innerHTML=MONTHS.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
   });
+
+  // event listeners - all inside init to avoid null errors
+  const $=id=>document.getElementById(id);
+  if($('hdr-prev'))     $('hdr-prev').onclick=()=>{calM--;if(calM<0){calM=11;calY--;}renderCal()};
+  if($('hdr-next'))     $('hdr-next').onclick=()=>{calM++;if(calM>11){calM=0;calY++;}renderCal()};
+  if($('ana-prev'))     $('ana-prev').onclick=()=>{anaM--;if(anaM<0){anaM=11;anaY--;}renderM()};
+  if($('ana-next'))     $('ana-next').onclick=()=>{anaM++;if(anaM>11){anaM=0;anaY++;}renderM()};
+  if($('ann-prev'))     $('ann-prev').onclick=()=>{annY--;renderA()};
+  if($('ann-next'))     $('ann-next').onclick=()=>{annY++;renderA()};
+  if($('bm-prev'))      $('bm-prev').onclick=()=>{bmM--;if(bmM<0){bmM=11;bmY--;}bmSel.clear();renderBmCal()};
+  if($('bm-next'))      $('bm-next').onclick=()=>{bmM++;if(bmM>11){bmM=0;bmY++;}bmSel.clear();renderBmCal()};
+  if($('sal-prev'))     $('sal-prev').onclick=()=>{salM--;if(salM<0){salM=11;salY--;}renderSalaryPage()};
+  if($('sal-next'))     $('sal-next').onclick=()=>{salM++;if(salM>11){salM=0;salY++;}renderSalaryPage()};
+  if($('sal-ann-prev')) $('sal-ann-prev').onclick=()=>{salAnnY--;renderSalAnnual()};
+  if($('sal-ann-next')) $('sal-ann-next').onclick=()=>{salAnnY++;renderSalAnnual()};
+
   applyMaster();
   autoRegFixed();
   renderCal();
@@ -735,8 +754,6 @@ function showPage(p){
 }
 
 // ===== HEADER =====
-document.getElementById('hdr-prev').onclick=()=>{calM--;if(calM<0){calM=11;calY--;}renderCal()};
-document.getElementById('hdr-next').onclick=()=>{calM++;if(calM>11){calM=0;calY++;}renderCal()};
 
 // ===== CALENDAR =====
 function renderCal(){
@@ -829,17 +846,6 @@ function openRecEdit(i){
   btn.style.background='#c7c7cc';
   document.getElementById('rec-modal').classList.add('show');
 }
-function setRecType(t){
-  document.getElementById('rec-type-val').value=t;
-  const outBtn=document.getElementById('rec-tab-out');
-  const inBtn =document.getElementById('rec-tab-in');
-  outBtn.style.background=t==='out'?'var(--red)':'none';
-  outBtn.style.color=t==='out'?'#fff':'var(--muted)';
-  outBtn.style.border=t==='out'?'none':'1px solid var(--border)';
-  inBtn.style.background=t==='in'?'var(--green)':'none';
-  inBtn.style.color=t==='in'?'#fff':'var(--muted)';
-  inBtn.style.border=t==='in'?'none':'1px solid var(--border)';
-}
 function saveRecEdit(){
   const i=parseInt(document.getElementById('rec-modal-idx').value);
   const date=document.getElementById('rec-date').value;
@@ -848,9 +854,8 @@ function saveRecEdit(){
   const genre=document.getElementById('rec-genre').value;
   const payment=document.getElementById('rec-pay').value;
   const memo=document.getElementById('rec-memo').value.trim();
-  const type=document.getElementById('rec-type-val')?.value||'out';
   if(!date||!title||!amt){toast('日付・タイトル・金額は必須です');return;}
-  records[i]={...records[i],date,title,amount:amt,genre,payment,memo,type};
+  records[i]={...records[i],date,title,amount:amt,genre,payment,memo,type:'out'};
   sv('kk_records',records);
   closeRecModalDirect();
   renderCal();
@@ -914,6 +919,14 @@ function checkFixedBtn(type){
     btn.style.background=ok?'#007aff':'#c7c7cc';
   }
 }
+function checkBudgetBtn(){
+  const val=parseInt(document.getElementById('b-inp').value)||0;
+  const btn=document.getElementById('budget-save-btn');
+  const ok=val>0;
+  btn.disabled=!ok;
+  btn.style.background=ok?'#007aff':'#c7c7cc';
+  btn.style.cursor=ok?'pointer':'default';
+}
 function checkBulkCatBtn(){
   const ok=!!(document.getElementById('bc-name').value.trim()&&
            (parseInt(document.getElementById('bc-price').value)||0)>0);
@@ -950,8 +963,6 @@ function setAnaSeg(s){
   renderAna();
 }
 function renderAna(){if(anaSeg==='m')renderM();else renderA();}
-document.getElementById('ana-prev').onclick=()=>{anaM--;if(anaM<0){anaM=11;anaY--;}renderM()};
-document.getElementById('ana-next').onclick=()=>{anaM++;if(anaM>11){anaM=0;anaY++;}renderM()};
 function renderM(){
   const key=ym(anaY,anaM);
   document.getElementById('ana-m-title').textContent=anaY+'年 '+(anaM+1)+'月';
@@ -965,6 +976,9 @@ function renderM(){
   document.getElementById('ana-var').textContent='¥'+(out-fx).toLocaleString();
   const budget=budgets[key]||0;
   document.getElementById('b-inp').value=budget||'';
+  // ボタン状態をリセット
+  const bBtn=document.getElementById('budget-save-btn');
+  if(bBtn){bBtn.disabled=true;bBtn.style.background='#c7c7cc';bBtn.style.cursor='default';}
   // 予算比較は固定費を除いた変動費で行う
   const varSpend=out-fx;
   if(budget>0){
@@ -999,8 +1013,6 @@ function saveBudget(){
   const key=ym(anaY,anaM),val=parseInt(document.getElementById('b-inp').value)||0;
   budgets[key]=val;sv('kk_budgets',budgets);renderM();renderCal();toast('予算を保存しました ✓');
 }
-document.getElementById('ann-prev').onclick=()=>{annY--;renderA()};
-document.getElementById('ann-next').onclick=()=>{annY++;renderA()};
 function renderA(){
   document.getElementById('ann-title').textContent=annY+'年';
   let tO=0,tI=0,tF=0;const md=[];let mv=0;
@@ -1044,8 +1056,6 @@ function renderA(){
 }
 
 // ===== PAYMENT CALCULATOR =====
-let payCalcSelM=new Set();
-let payCalcSelA=new Set();
 
 function renderPayCalc(outRecs, checksElId, totalElId, detailElId, selSet){
   const pm={};
@@ -1528,11 +1538,7 @@ function registerBulk(){
   bmSel.clear();renderBmCal();
   toast(cat.emoji+' 一括登録しました ✓');
 }
-document.getElementById('bm-prev').onclick=()=>{bmM--;if(bmM<0){bmM=11;bmY--;}bmSel.clear();renderBmCal()};
-document.getElementById('bm-next').onclick=()=>{bmM++;if(bmM>11){bmM=0;bmY++;}bmSel.clear();renderBmCal()};
-
 // ===== SALARY =====
-let salSeg='m', salAnnY;
 
 function setSalSeg(s){
   salSeg=s;
@@ -1584,11 +1590,6 @@ function saveSalary(){
   sv('kk_salaries',salaries);
   toast('給与情報を保存しました ✓');
 }
-
-document.getElementById('sal-prev').onclick=()=>{salM--;if(salM<0){salM=11;salY--;}renderSalaryPage()};
-document.getElementById('sal-next').onclick=()=>{salM++;if(salM>11){salM=0;salY++;}renderSalaryPage()};
-document.getElementById('sal-ann-prev').onclick=()=>{salAnnY--;renderSalAnnual()};
-document.getElementById('sal-ann-next').onclick=()=>{salAnnY++;renderSalAnnual()};
 
 function renderSalAnnual(){
   document.getElementById('sal-ann-title').textContent=salAnnY+'年';
