@@ -434,8 +434,13 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 </div>
 
 <div class="icard">
-  <div class="icard-t">💰 給与</div>
-  <div class="irow"><div class="ilbl">月給（額面）</div><input class="ictrl" type="number" id="sal-gross" placeholder="0" min="0" oninput="calcSalary()"></div>
+  <div class="icard-t">💰 給与（支給）</div>
+  <div class="irow"><div class="ilbl">基本給</div><input class="ictrl" type="number" id="sal-base" placeholder="0" min="0" oninput="calcSalary()"></div>
+  <div class="irow"><div class="ilbl">住宅手当</div><input class="ictrl" type="number" id="sal-housing" placeholder="0" min="0" oninput="calcSalary()"></div>
+  <div class="irow"><div class="ilbl">残業代</div><input class="ictrl" type="number" id="sal-overtime" placeholder="0" min="0" oninput="calcSalary()"></div>
+  <div class="irow"><div class="ilbl">通勤手当</div><input class="ictrl" type="number" id="sal-commute" placeholder="0" min="0" oninput="calcSalary()"></div>
+  <div class="irow"><div class="ilbl">地域手当</div><input class="ictrl" type="number" id="sal-area" placeholder="0" min="0" oninput="calcSalary()"></div>
+  <div class="irow" style="background:#f7f7f7"><div class="ilbl" style="color:#8e8e93;font-size:13px">支給合計</div><div class="ictrl" id="sal-gross-display" style="color:#007aff;font-weight:700;text-align:right;font-size:15px">¥0</div></div>
   <div class="irow"><div class="ilbl">手取り</div><input class="ictrl" type="number" id="sal-net" placeholder="0" min="0" oninput="calcSalary()"></div>
 </div>
 <div class="icard">
@@ -1558,7 +1563,11 @@ function renderSalaryPage(){
   document.getElementById('sal-month-title').textContent=salY+'年 '+(salM+1)+'月';
   const key=ym(salY,salM);
   const d=salaries[key]||{};
-  document.getElementById('sal-gross').value=d.gross||'';
+  document.getElementById('sal-base').value=d.base||'';
+  document.getElementById('sal-housing').value=d.housing||'';
+  document.getElementById('sal-overtime').value=d.overtime||'';
+  document.getElementById('sal-commute').value=d.commute||'';
+  document.getElementById('sal-area').value=d.area||'';
   document.getElementById('sal-net').value=d.net||'';
   document.getElementById('sal-health').value=d.health||'';
   document.getElementById('sal-pension').value=d.pension||'';
@@ -1575,11 +1584,14 @@ function renderSalaryPage(){
 
 function calcSalary(){
   const v=id=>parseInt(document.getElementById(id).value)||0;
+  const gross=v('sal-base')+v('sal-housing')+v('sal-overtime')+v('sal-commute')+v('sal-area');
   const deduct=v('sal-health')+v('sal-pension')+v('sal-employ')+v('sal-care')+v('sal-income-tax')+v('sal-resident-tax')+v('sal-membership')+v('sal-other-deduct');
   const net=v('sal-net');
   const bonusNet=v('sal-bonus-net');
   const otherDeduct=v('sal-other-deduct');
   const realNet=net+bonusNet+otherDeduct;
+  const dispEl=document.getElementById('sal-gross-display');
+  if(dispEl) dispEl.textContent='¥'+gross.toLocaleString();
   document.getElementById('sal-deduct-total').textContent='¥'+deduct.toLocaleString();
   document.getElementById('sal-net-total').textContent='¥'+(net+bonusNet).toLocaleString();
   document.getElementById('sal-real-net').textContent='¥'+realNet.toLocaleString();
@@ -1594,8 +1606,12 @@ function calcSalary(){
 function saveSalary(){
   const v=id=>parseInt(document.getElementById(id).value)||0;
   const key=ym(salY,salM);
+  const gross=v('sal-base')+v('sal-housing')+v('sal-overtime')+v('sal-commute')+v('sal-area');
   salaries[key]={
-    gross:v('sal-gross'),net:v('sal-net'),
+    gross,
+    base:v('sal-base'),housing:v('sal-housing'),overtime:v('sal-overtime'),
+    commute:v('sal-commute'),area:v('sal-area'),
+    net:v('sal-net'),
     health:v('sal-health'),pension:v('sal-pension'),
     employ:v('sal-employ'),care:v('sal-care'),
     incomeTax:v('sal-income-tax'),residentTax:v('sal-resident-tax'),
@@ -1666,7 +1682,7 @@ async function scanSalaryPhoto(e){
           content:[
             {type:'image',source:{type:'base64',media_type:file.type,data:base64}},
             {type:'text',text:`この給与明細の画像から以下の金額を読み取り、JSONのみで返してください。数値は半角数字のみ（カンマなし）。
-{"gross":月給額面,"net":手取り,"health":健康保険,"pension":厚生年金,"employ":雇用保険,"care":介護保険,"incomeTax":所得税,"residentTax":住民税,"membership":会費・積立,"otherDeduct":その他控除,"bonusGross":ボーナス額面,"bonusNet":ボーナス手取り}
+{"base":基本給,"housing":住宅手当,"overtime":残業代,"commute":通勤手当,"area":地域手当,"net":手取り,"health":健康保険,"pension":厚生年金,"employ":雇用保険,"care":介護保険,"incomeTax":所得税,"residentTax":住民税,"membership":会費・積立,"otherDeduct":その他控除,"bonusGross":ボーナス額面,"bonusNet":ボーナス手取り}
 不明な項目は0にしてください。JSONのみ返してください。`}
           ]
         }]
@@ -1676,8 +1692,12 @@ async function scanSalaryPhoto(e){
     const text=data.content.map(c=>c.text||'').join('');
     const clean=text.replace(/```json|```/g,'').trim();
     const parsed=JSON.parse(clean);
-    if(parsed.gross)    document.getElementById('sal-gross').value=parsed.gross;
-    if(parsed.net)      document.getElementById('sal-net').value=parsed.net;
+    if(parsed.base)         document.getElementById('sal-base').value=parsed.base;
+    if(parsed.housing)      document.getElementById('sal-housing').value=parsed.housing;
+    if(parsed.overtime)     document.getElementById('sal-overtime').value=parsed.overtime;
+    if(parsed.commute)      document.getElementById('sal-commute').value=parsed.commute;
+    if(parsed.area)         document.getElementById('sal-area').value=parsed.area;
+    if(parsed.net)          document.getElementById('sal-net').value=parsed.net;
     if(parsed.health)   document.getElementById('sal-health').value=parsed.health;
     if(parsed.pension)  document.getElementById('sal-pension').value=parsed.pension;
     if(parsed.employ)   document.getElementById('sal-employ').value=parsed.employ;
