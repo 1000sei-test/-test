@@ -468,8 +468,13 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       <div style="font-size:18px;font-weight:700;color:#ff6b6b;margin-top:2px" id="sal-deduct-total">¥0</div>
     </div>
     <div style="background:#2c2c2e;border-radius:10px;padding:12px">
-      <div style="font-size:11px;color:#aaa">手取り合計</div>
+      <div style="font-size:11px;color:#aaa">手取り</div>
       <div style="font-size:18px;font-weight:700;color:#34c759;margin-top:2px" id="sal-net-total">¥0</div>
+    </div>
+    <div style="background:#2c2c2e;border-radius:10px;padding:12px;grid-column:1/-1">
+      <div style="font-size:11px;color:#aaa">実質手取り <span style="font-size:10px;opacity:.7">（手取り＋その他控除）</span></div>
+      <div style="font-size:20px;font-weight:700;color:#64d2ff;margin-top:2px" id="sal-real-net">¥0</div>
+      <div style="font-size:10px;color:#aaa;margin-top:2px" id="sal-real-net-note"></div>
     </div>
   </div>
 </div>
@@ -1571,9 +1576,19 @@ function renderSalaryPage(){
 function calcSalary(){
   const v=id=>parseInt(document.getElementById(id).value)||0;
   const deduct=v('sal-health')+v('sal-pension')+v('sal-employ')+v('sal-care')+v('sal-income-tax')+v('sal-resident-tax')+v('sal-membership')+v('sal-other-deduct');
-  const netTotal=v('sal-net')+v('sal-bonus-net');
+  const net=v('sal-net');
+  const bonusNet=v('sal-bonus-net');
+  const otherDeduct=v('sal-other-deduct');
+  const realNet=net+bonusNet+otherDeduct;
   document.getElementById('sal-deduct-total').textContent='¥'+deduct.toLocaleString();
-  document.getElementById('sal-net-total').textContent='¥'+netTotal.toLocaleString();
+  document.getElementById('sal-net-total').textContent='¥'+(net+bonusNet).toLocaleString();
+  document.getElementById('sal-real-net').textContent='¥'+realNet.toLocaleString();
+  const noteEl=document.getElementById('sal-real-net-note');
+  if(otherDeduct>0){
+    noteEl.textContent='手取り ¥'+(net+bonusNet).toLocaleString()+' ＋ その他控除 ¥'+otherDeduct.toLocaleString();
+  } else {
+    noteEl.textContent='その他控除を入力すると足し算されます';
+  }
 }
 
 function saveSalary(){
