@@ -1599,6 +1599,17 @@ function saveCards(){
   toast('クレカ情報を保存しました ✓');
 }
 
+function moveItem(type,i,dir){
+  const arr=type==='pay'?master.payments:master.genres;
+  const j=i+dir;
+  if(j<0||j>=arr.length)return;
+  [arr[i],arr[j]]=[arr[j],arr[i]];
+  sv('kk_master',master);
+  applyMaster();
+  if(type==='pay') renderPayList();
+  else renderGenreList();
+}
+
 // 支払い方法リスト
 function renderPayList(){
   const el=document.getElementById('pay-list');
@@ -1606,6 +1617,10 @@ function renderPayList(){
   if(!master.payments.length){el.innerHTML='<div class="fi-empty">支払い方法が未登録です</div>';return;}
   el.innerHTML=master.payments.map((p,i)=>`
     <div class="fi-item">
+      <div style="display:flex;flex-direction:column;gap:2px;margin-right:6px">
+        <button onclick="moveItem('pay',${i},-1)" style="border:none;background:none;font-size:14px;cursor:pointer;color:${i===0?'#ddd':'#a89880'};padding:0;line-height:1" ${i===0?'disabled':''}>▲</button>
+        <button onclick="moveItem('pay',${i},1)" style="border:none;background:none;font-size:14px;cursor:pointer;color:${i===master.payments.length-1?'#ddd':'#a89880'};padding:0;line-height:1" ${i===master.payments.length-1?'disabled':''}>▼</button>
+      </div>
       <div class="fi-left"><div class="fi-name">${p}</div></div>
       <button class="fi-edit" onclick="editPayment(${i})">編集</button>
       <button class="fi-del" onclick="delPayment(${i})">✕</button>
@@ -1654,6 +1669,10 @@ function renderGenreList(){
   if(!master.genres.length){el.innerHTML='<div class="fi-empty">ジャンルが未登録です</div>';return;}
   el.innerHTML=master.genres.map((g,i)=>`
     <div class="fi-item">
+      <div style="display:flex;flex-direction:column;gap:2px;margin-right:6px">
+        <button onclick="moveItem('genre',${i},-1)" style="border:none;background:none;font-size:14px;cursor:pointer;color:${i===0?'#ddd':'#a89880'};padding:0;line-height:1" ${i===0?'disabled':''}>▲</button>
+        <button onclick="moveItem('genre',${i},1)" style="border:none;background:none;font-size:14px;cursor:pointer;color:${i===master.genres.length-1?'#ddd':'#a89880'};padding:0;line-height:1" ${i===master.genres.length-1?'disabled':''}>▼</button>
+      </div>
       <div class="fi-left"><div class="fi-name">${g}</div></div>
       <button class="fi-edit" onclick="editGenre(${i})">編集</button>
       <button class="fi-del" onclick="delGenre(${i})">✕</button>
