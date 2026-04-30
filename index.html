@@ -510,7 +510,7 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
     <input type="hidden" id="modal-idx">
     <input type="hidden" id="modal-type">
     <div class="modal-row"><label>名前</label><input type="text" id="modal-name" placeholder="例: 家賃"></div>
-    <div class="modal-row"><label>金額</label><input type="number" id="modal-amt" placeholder="0" min="0"><span class="unit">円</span></div>
+    <div class="modal-row"><label>金額</label><input type="number" id="modal-amt" placeholder="0" min="0"><button onclick="openCalc('modal-amt')" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button><span class="unit">円</span></div>
     <div class="modal-row" id="modal-month-row"><label>月</label><select id="modal-month"></select></div>
     <div class="modal-row"><label>日</label><input type="number" id="modal-day" placeholder="25" min="1" max="31"><span class="unit">日</span></div>
     <div class="modal-row"><label>支払い</label><select id="modal-pay"></select></div>
@@ -598,6 +598,7 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
       <div class="bset">
         <input type="number" id="b-inp" placeholder="例: 30000" min="0" oninput="checkBudgetBtn()">
         <span class="unit">円</span>
+        <button onclick="openCalc('b-inp',checkBudgetBtn)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0;color:#a89880">🧮</button>
         <button class="bset-btn" id="budget-save-btn" onclick="saveBudget()" disabled style="background:#c7c7cc;cursor:default">保存</button>
       </div>
     </div>
@@ -729,29 +730,29 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
   <div class="irow"><div class="ilbl">地域手当</div><input class="ictrl" type="number" id="sal-area" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-area',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
   <div class="irow"><div class="ilbl">出張手当</div><input class="ictrl" type="number" id="sal-travel" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-travel',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
   <div class="irow" style="background:#f7f7f7"><div class="ilbl" style="color:#8e8e93;font-size:13px">支給合計</div><div class="ictrl" id="sal-gross-display" style="color:#007aff;font-weight:700;text-align:right;font-size:15px">¥0</div></div>
-  <div class="irow"><div class="ilbl">手取り</div><input class="ictrl" type="number" id="sal-net" placeholder="0" min="0" oninput="calcSalary()"></div>
+  <div class="irow"><div class="ilbl">手取り</div><input class="ictrl" type="number" id="sal-net" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-net',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
 </div>
 <div class="icard">
   <div class="icard-t">📋 社会保険料</div>
-  <div class="irow"><div class="ilbl">健康保険</div><input class="ictrl" type="number" id="sal-health" placeholder="0" min="0" oninput="calcSalary()"></div>
-  <div class="irow"><div class="ilbl">厚生年金</div><input class="ictrl" type="number" id="sal-pension" placeholder="0" min="0" oninput="calcSalary()"></div>
-  <div class="irow"><div class="ilbl">雇用保険</div><input class="ictrl" type="number" id="sal-employ" placeholder="0" min="0" oninput="calcSalary()"></div>
-  <div class="irow"><div class="ilbl">介護保険</div><input class="ictrl" type="number" id="sal-care" placeholder="0（40歳以上）" min="0" oninput="calcSalary()"></div>
+  <div class="irow"><div class="ilbl">健康保険</div><input class="ictrl" type="number" id="sal-health" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-health',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
+  <div class="irow"><div class="ilbl">厚生年金</div><input class="ictrl" type="number" id="sal-pension" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-pension',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
+  <div class="irow"><div class="ilbl">雇用保険</div><input class="ictrl" type="number" id="sal-employ" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-employ',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
+  <div class="irow"><div class="ilbl">介護保険</div><input class="ictrl" type="number" id="sal-care" placeholder="0（40歳以上）" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-care',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
 </div>
 <div class="icard">
   <div class="icard-t">🏛️ 税金</div>
-  <div class="irow"><div class="ilbl">所得税</div><input class="ictrl" type="number" id="sal-income-tax" placeholder="0" min="0" oninput="calcSalary()"></div>
-  <div class="irow"><div class="ilbl">住民税</div><input class="ictrl" type="number" id="sal-resident-tax" placeholder="0" min="0" oninput="calcSalary()"></div>
+  <div class="irow"><div class="ilbl">所得税</div><input class="ictrl" type="number" id="sal-income-tax" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-income-tax',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
+  <div class="irow"><div class="ilbl">住民税</div><input class="ictrl" type="number" id="sal-resident-tax" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-resident-tax',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
 </div>
 <div class="icard">
   <div class="icard-t">➕ その他控除</div>
-  <div class="irow"><div class="ilbl">会費・積立</div><input class="ictrl" type="number" id="sal-membership" placeholder="0" min="0" oninput="calcSalary()"></div>
-  <div class="irow"><div class="ilbl">その他</div><input class="ictrl" type="number" id="sal-other-deduct" placeholder="弁当代など" min="0" oninput="calcSalary()"></div>
+  <div class="irow"><div class="ilbl">会費・積立</div><input class="ictrl" type="number" id="sal-membership" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-membership',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
+  <div class="irow"><div class="ilbl">その他</div><input class="ictrl" type="number" id="sal-other-deduct" placeholder="弁当代など" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-other-deduct',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
 </div>
 <div class="icard">
   <div class="icard-t">🎁 ボーナス</div>
-  <div class="irow"><div class="ilbl">ボーナス額面</div><input class="ictrl" type="number" id="sal-bonus-gross" placeholder="0" min="0" oninput="calcSalary()"></div>
-  <div class="irow"><div class="ilbl">ボーナス手取り</div><input class="ictrl" type="number" id="sal-bonus-net" placeholder="0" min="0" oninput="calcSalary()"></div>
+  <div class="irow"><div class="ilbl">ボーナス額面</div><input class="ictrl" type="number" id="sal-bonus-gross" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-bonus-gross',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
+  <div class="irow"><div class="ilbl">ボーナス手取り</div><input class="ictrl" type="number" id="sal-bonus-net" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-bonus-net',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
 </div>
 <div style="background:#f5f1ea;border-radius:18px;padding:16px;margin-bottom:14px;border:1px solid #e8e2d8">
   <div style="font-size:12px;color:#a89880;margin-bottom:10px">📊 今月のまとめ</div>
@@ -838,7 +839,7 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
   <div class="fi-form">
     <div class="fi-form-title" id="fi-form-title-m">＋ 月払いを追加</div>
     <div class="fi-form-row"><label>名前</label><input type="text" id="fim-name" placeholder="例: 家賃" oninput="checkFixedBtn('m')"></div>
-    <div class="fi-form-row"><label>金額</label><input type="number" id="fim-amt" placeholder="0" min="0" oninput="checkFixedBtn('m')"><span class="unit">円</span></div>
+    <div class="fi-form-row"><label>金額</label><input type="number" id="fim-amt" placeholder="0" min="0" oninput="checkFixedBtn('m')"><button onclick="openCalc('fim-amt',()=>checkFixedBtn('m'))" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button><span class="unit">円</span></div>
     <div class="fi-form-row"><label>毎月</label><input type="number" id="fim-day" placeholder="25" min="1" max="31" oninput="checkFixedBtn('m')"><span class="unit">日</span></div>
     <div class="fi-form-row"><label>支払い</label><select id="fim-pay"></select></div>
     <button class="fi-add-btn" id="fim-btn" onclick="addFixed('m')" disabled>追加する</button>
@@ -851,7 +852,7 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
   <div class="fi-form">
     <div class="fi-form-title">＋ 年払いを追加</div>
     <div class="fi-form-row"><label>名前</label><input type="text" id="fiy-name" placeholder="例: 自動車保険" oninput="checkFixedBtn('y')"></div>
-    <div class="fi-form-row"><label>金額</label><input type="number" id="fiy-amt" placeholder="0" min="0" oninput="checkFixedBtn('y')"><span class="unit">円</span></div>
+    <div class="fi-form-row"><label>金額</label><input type="number" id="fiy-amt" placeholder="0" min="0" oninput="checkFixedBtn('y')"><button onclick="openCalc('fiy-amt',()=>checkFixedBtn('y'))" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button><span class="unit">円</span></div>
     <div class="fi-form-row"><label>月</label><select id="fiy-month"></select></div>
     <div class="fi-form-row"><label>日</label><input type="number" id="fiy-day" placeholder="1" min="1" max="31" oninput="checkFixedBtn('y')"><span class="unit">日</span></div>
     <div class="fi-form-row"><label>支払い</label><select id="fiy-pay"></select></div>
@@ -902,7 +903,7 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
       <div class="fi-form-title">＋ カテゴリを追加</div>
       <div class="fi-form-row"><label>名前</label><input type="text" id="bc-name" placeholder="例: 弁当代" oninput="checkBulkCatBtn()"></div>
       <div class="fi-form-row"><label>絵文字</label><input type="text" id="bc-emoji" placeholder="例: 🍱" maxlength="2" style="width:60px;flex:none"></div>
-      <div class="fi-form-row"><label>単価</label><input type="number" id="bc-price" placeholder="500" min="0" oninput="checkBulkCatBtn()"><span class="unit">円</span></div>
+      <div class="fi-form-row"><label>単価</label><input type="number" id="bc-price" placeholder="500" min="0" oninput="checkBulkCatBtn()"><button onclick="openCalc('bc-price',checkBulkCatBtn)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button><span class="unit">円</span></div>
       <div class="fi-form-row"><label>ジャンル</label><select id="bc-genre"></select></div>
       <div class="fi-form-row"><label>支払い</label><select id="bc-pay"></select></div>
       <button class="fi-add-btn" id="bc-btn" onclick="addBulkCat()" disabled>追加する</button>
@@ -925,6 +926,7 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
       <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
         <span style="font-size:13px;color:var(--muted)">単価を変更:</span>
         <input type="number" id="bm-price-override" min="0" style="flex:1;border:1px solid var(--border);border-radius:8px;padding:6px 9px;font-family:inherit;font-size:14px;background:var(--card);outline:none">
+        <button onclick="openCalc('bm-price-override')" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0;color:#a89880">🧮</button>
         <span style="font-size:12px;color:var(--muted)">円</span>
       </div>
     </div>
