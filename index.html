@@ -362,6 +362,23 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
 
 /* ===== SETTINGS ===== */
 .sp{padding:14px 14px 32px}
+
+/* CALCULATOR MODAL */
+.calc-overlay{position:fixed;inset:0;background:rgba(44,40,32,.45);z-index:600;display:none;align-items:flex-end;justify-content:center}
+.calc-overlay.show{display:flex}
+.calc-box{background:#f5f1ea;border-radius:24px 24px 0 0;padding:16px 16px 32px;width:100%;max-width:480px}
+.calc-display{background:#fff;border-radius:14px;padding:12px 16px;margin-bottom:12px;text-align:right;min-height:72px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px}
+.calc-expr{font-size:13px;color:#a89880;min-height:18px;word-break:break-all}
+.calc-result{font-size:32px;font-weight:700;color:#2c2820;word-break:break-all}
+.calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.calc-btn{padding:18px 0;border:none;border-radius:14px;font-family:inherit;font-size:20px;font-weight:600;cursor:pointer;transition:all .1s;background:#fff;color:#2c2820}
+.calc-btn:active{transform:scale(.94)}
+.calc-btn.op{background:#e8e2da;color:#5b7e6e}
+.calc-btn.zero{grid-column:span 2}
+.calc-btn.eq{background:#5b7e6e;color:#fff;font-size:24px}
+.calc-btn.del{background:#f0ece6;color:#c0604a}
+.calc-apply{width:100%;padding:14px;background:#5b7e6e;color:#fff;border:none;border-radius:14px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;margin-top:4px}
+.calc-cancel{width:100%;padding:10px;background:none;border:none;font-family:inherit;font-size:14px;color:#a89880;cursor:pointer;margin-top:4px}
 .sst{font-size:12px;font-weight:600;color:var(–muted);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 6px;padding:0 2px}
 .scard{background:var(–card);border-radius:12px;overflow:hidden;margin-bottom:8px}
 
@@ -444,6 +461,47 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
 <body>
 <div class="toast" id="toast"></div>
 
+<!-- CALCULATOR MODAL -->
+
+<div class="calc-overlay" id="calc-overlay" onclick="calcOverlayClick(event)">
+  <div class="calc-box">
+    <div class="calc-display">
+      <div class="calc-expr" id="calc-expr"></div>
+      <div class="calc-result" id="calc-result">0</div>
+    </div>
+    <div class="calc-grid">
+      <button class="calc-btn op" onclick="calcOp('AC')">AC</button>
+      <button class="calc-btn op del" onclick="calcOp('DEL')">⌫</button>
+      <button class="calc-btn op" onclick="calcOp('%')">%</button>
+      <button class="calc-btn op" onclick="calcOp('÷')">÷</button>
+
+```
+  <button class="calc-btn" onclick="calcNum('7')">7</button>
+  <button class="calc-btn" onclick="calcNum('8')">8</button>
+  <button class="calc-btn" onclick="calcNum('9')">9</button>
+  <button class="calc-btn op" onclick="calcOp('×')">×</button>
+
+  <button class="calc-btn" onclick="calcNum('4')">4</button>
+  <button class="calc-btn" onclick="calcNum('5')">5</button>
+  <button class="calc-btn" onclick="calcNum('6')">6</button>
+  <button class="calc-btn op" onclick="calcOp('−')">−</button>
+
+  <button class="calc-btn" onclick="calcNum('1')">1</button>
+  <button class="calc-btn" onclick="calcNum('2')">2</button>
+  <button class="calc-btn" onclick="calcNum('3')">3</button>
+  <button class="calc-btn op" onclick="calcOp('+')">+</button>
+
+  <button class="calc-btn zero" onclick="calcNum('0')">0</button>
+  <button class="calc-btn" onclick="calcNum('.')">.</button>
+  <button class="calc-btn eq" onclick="calcEq()">=</button>
+</div>
+<button class="calc-apply" onclick="calcApply()">この金額を入力</button>
+<button class="calc-cancel" onclick="closeCalc()">キャンセル</button>
+```
+
+  </div>
+</div>
+
 <!-- EDIT MODAL (固定費) -->
 
 <div class="modal-overlay" id="edit-modal" onclick="closeModal(event)">
@@ -471,7 +529,7 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
     <input type="hidden" id="rec-modal-idx">
     <div class="modal-row"><label>日付</label><input type="date" id="rec-date" oninput="checkRecSaveBtn()"></div>
     <div class="modal-row"><label>タイトル</label><input type="text" id="rec-title" placeholder="例: ランチ" oninput="checkRecSaveBtn()"></div>
-    <div class="modal-row"><label>金額</label><input type="number" id="rec-amt" placeholder="0" min="0" oninput="checkRecSaveBtn()"><span class="unit">円</span></div>
+    <div class="modal-row"><label>金額</label><input type="number" id="rec-amt" placeholder="0" min="0" oninput="checkRecSaveBtn()"><button onclick="openCalc('rec-amt',checkRecSaveBtn)" style="border:none;background:none;font-size:18px;cursor:pointer;padding:0 0 0 6px;color:#a89880">🧮</button><span class="unit">円</span></div>
     <div class="modal-row"><label>ジャンル</label><select id="rec-genre" onchange="checkRecSaveBtn()"></select></div>
     <div class="modal-row"><label>支払い</label><select id="rec-pay" onchange="checkRecSaveBtn()"></select></div>
     <div class="modal-row"><label>メモ</label><input type="text" id="rec-memo" placeholder="任意"></div>
@@ -615,7 +673,7 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
     <div class="irow"><div class="ilbl">タイトル</div><input class="ictrl" type="text" id="i-title" placeholder="例: ランチ" oninput="checkSaveBtn()"></div>
     <div class="irow"><div class="ilbl">ジャンル</div><select class="ictrl" id="i-genre"></select></div>
     <div class="irow"><div class="ilbl">支払い</div><select class="ictrl" id="i-pay"></select></div>
-    <div class="irow"><div class="ilbl">金額</div><input class="ictrl" type="number" id="i-amt" placeholder="0" min="0" oninput="checkSaveBtn()"></div>
+    <div class="irow"><div class="ilbl">金額</div><input class="ictrl" type="number" id="i-amt" placeholder="0" min="0" oninput="checkSaveBtn()"><button onclick="openCalc('i-amt')" style="border:none;background:none;font-size:18px;cursor:pointer;padding:0 0 0 6px;color:#a89880">🧮</button></div>
     <div class="irow"><div class="ilbl">メモ</div><input class="ictrl" type="text" id="i-memo" placeholder="任意"></div>
     <div class="irow" style="background:#fff8f0">
       <div class="ilbl" style="color:#ff9500;font-size:13px">⚡ 特別支出</div>
@@ -664,12 +722,12 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
 
 <div class="icard">
   <div class="icard-t">💰 給与（支給）</div>
-  <div class="irow"><div class="ilbl">基本給</div><input class="ictrl" type="number" id="sal-base" placeholder="0" min="0" oninput="calcSalary()"></div>
-  <div class="irow"><div class="ilbl">住宅手当</div><input class="ictrl" type="number" id="sal-housing" placeholder="0" min="0" oninput="calcSalary()"></div>
-  <div class="irow"><div class="ilbl">残業代</div><input class="ictrl" type="number" id="sal-overtime" placeholder="0" min="0" oninput="calcSalary()"></div>
-  <div class="irow"><div class="ilbl">通勤手当</div><input class="ictrl" type="number" id="sal-commute" placeholder="0" min="0" oninput="calcSalary()"></div>
-  <div class="irow"><div class="ilbl">地域手当</div><input class="ictrl" type="number" id="sal-area" placeholder="0" min="0" oninput="calcSalary()"></div>
-  <div class="irow"><div class="ilbl">出張手当</div><input class="ictrl" type="number" id="sal-travel" placeholder="0" min="0" oninput="calcSalary()"></div>
+  <div class="irow"><div class="ilbl">基本給</div><input class="ictrl" type="number" id="sal-base" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-base',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
+  <div class="irow"><div class="ilbl">住宅手当</div><input class="ictrl" type="number" id="sal-housing" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-housing',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
+  <div class="irow"><div class="ilbl">残業代</div><input class="ictrl" type="number" id="sal-overtime" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-overtime',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
+  <div class="irow"><div class="ilbl">通勤手当</div><input class="ictrl" type="number" id="sal-commute" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-commute',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
+  <div class="irow"><div class="ilbl">地域手当</div><input class="ictrl" type="number" id="sal-area" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-area',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
+  <div class="irow"><div class="ilbl">出張手当</div><input class="ictrl" type="number" id="sal-travel" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-travel',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
   <div class="irow" style="background:#f7f7f7"><div class="ilbl" style="color:#8e8e93;font-size:13px">支給合計</div><div class="ictrl" id="sal-gross-display" style="color:#007aff;font-weight:700;text-align:right;font-size:15px">¥0</div></div>
   <div class="irow"><div class="ilbl">手取り</div><input class="ictrl" type="number" id="sal-net" placeholder="0" min="0" oninput="calcSalary()"></div>
 </div>
@@ -1133,7 +1191,102 @@ function applyMaster(){
     mb.style.background=ok?'#007aff':'#c7c7cc';
   }
 }
-// special expense toggle
+// ===== CALCULATOR =====
+let calcTargetId=null, calcCallback=null;
+let calcLeft=0, calcOper='', calcCurrent='0', calcJustEq=false, calcHasDecimal=false;
+
+function openCalc(targetId, callback){
+  calcTargetId=targetId;
+  calcCallback=callback||null;
+  const cur=parseFloat(document.getElementById(targetId).value)||0;
+  calcLeft=0; calcOper=''; calcCurrent=cur>0?String(cur):'0';
+  calcJustEq=false; calcHasDecimal=calcCurrent.includes('.');
+  updateCalcDisplay();
+  document.getElementById('calc-overlay').classList.add('show');
+}
+function closeCalc(){
+  document.getElementById('calc-overlay').classList.remove('show');
+}
+function calcOverlayClick(e){
+  if(e.target===document.getElementById('calc-overlay')) closeCalc();
+}
+function updateCalcDisplay(){
+  const exprText=calcOper ? (formatNum(calcLeft)+' '+calcOper) : '';
+  document.getElementById('calc-expr').textContent=exprText;
+  document.getElementById('calc-result').textContent=
+    Number(calcCurrent).toLocaleString('ja-JP',{maximumFractionDigits:4});
+}
+function formatNum(n){
+  return Number(n).toLocaleString('ja-JP',{maximumFractionDigits:4});
+}
+function calcNum(n){
+  if(calcJustEq){ calcLeft=0; calcOper=''; calcJustEq=false; }
+  if(n==='.'){
+    if(calcHasDecimal) return;
+    calcHasDecimal=true;
+    calcCurrent+='.';
+  } else {
+    if(calcCurrent==='0') calcCurrent=n;
+    else calcCurrent+=n;
+  }
+  updateCalcDisplay();
+}
+function calcOp(op){
+  if(op==='AC'){
+    calcLeft=0; calcOper=''; calcCurrent='0';
+    calcJustEq=false; calcHasDecimal=false;
+    updateCalcDisplay(); return;
+  }
+  if(op==='DEL'){
+    if(calcJustEq){ calcLeft=0; calcOper=''; calcJustEq=false; }
+    if(calcCurrent.length>1){
+      const last=calcCurrent.slice(-1);
+      if(last==='.') calcHasDecimal=false;
+      calcCurrent=calcCurrent.slice(0,-1);
+    } else {
+      calcCurrent='0'; calcHasDecimal=false;
+    }
+    updateCalcDisplay(); return;
+  }
+  if(op==='%'){
+    calcCurrent=String(parseFloat(calcCurrent)/100);
+    calcHasDecimal=calcCurrent.includes('.');
+    updateCalcDisplay(); return;
+  }
+  // operator pressed
+  if(calcOper && !calcJustEq){
+    // chain calculation
+    calcLeft=doCalc(parseFloat(calcLeft), parseFloat(calcCurrent), calcOper);
+    calcCurrent=String(calcLeft);
+  } else {
+    calcLeft=parseFloat(calcCurrent);
+  }
+  calcOper=op; calcCurrent='0'; calcHasDecimal=false; calcJustEq=false;
+  updateCalcDisplay();
+}
+function doCalc(a,b,op){
+  if(op==='+') return Math.round((a+b)*10000)/10000;
+  if(op==='−') return Math.round((a-b)*10000)/10000;
+  if(op==='×') return Math.round((a*b)*10000)/10000;
+  if(op==='÷') return b!==0 ? Math.round((a/b)*10000)/10000 : 0;
+  return b;
+}
+function calcEq(){
+  if(!calcOper) return;
+  const result=doCalc(parseFloat(calcLeft), parseFloat(calcCurrent), calcOper);
+  calcLeft=result; calcCurrent=String(result);
+  calcOper=''; calcJustEq=true;
+  calcHasDecimal=calcCurrent.includes('.');
+  updateCalcDisplay();
+}
+function calcApply(){
+  if(!calcTargetId) return;
+  const val=Math.round(parseFloat(calcCurrent))||0;
+  const el=document.getElementById(calcTargetId);
+  if(el){ el.value=val; el.dispatchEvent(new Event('input')); }
+  if(calcCallback) calcCallback();
+  closeCalc();
+}
 let isSpecial=false;
 function toggleSpecial(){
   isSpecial=!isSpecial;
