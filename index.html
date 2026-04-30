@@ -876,7 +876,7 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
     </div>
     <div class="bcgrid" id="bm-grid"></div>
     <div class="bcount" id="bm-cnt">0日 選択中</div>
-    <button class="breg" id="bm-reg-btn" onclick="registerBulk()">選択した日に一括登録</button>
+    <button class="breg" id="bm-reg-btn" onclick="registerBulk()" disabled style="background:#d4cfc8;cursor:default">選択した日に一括登録</button>
   </div>
 
   <!-- データ管理 -->
@@ -1811,6 +1811,7 @@ function selectBulkCat(id){
   bmSel.clear();
   renderBulkCatBtns();
   renderBmCal();
+  updateBulkRegBtn();
 }
 
 function updateBulkInfoPanel(){
@@ -1823,6 +1824,17 @@ function updateBulkInfoPanel(){
   document.getElementById('bm-sel-meta').textContent='デフォルト ¥'+c.price.toLocaleString()+' ・ '+c.genre+' ・ '+c.payment;
   document.getElementById('bm-price-override').placeholder=c.price;
   document.getElementById('bm-price-override').value='';
+}
+
+function updateBulkRegBtn(){
+  const btn=document.getElementById('bm-reg-btn');
+  if(!btn)return;
+  const cat=bulkCats.find(c=>c.id===selBulkId);
+  const ok=!!(cat&&bmSel.size>0);
+  btn.disabled=!ok;
+  btn.style.background=ok?'var(--accent)':'#d4cfc8';
+  btn.style.cursor=ok?'pointer':'default';
+  if(cat) btn.textContent=ok?`${cat.emoji} ${cat.name}を一括登録（${bmSel.size}日）`:`${cat.emoji} ${cat.name}を一括登録`;
 }
 
 // ===== BENTO CAL =====
@@ -1842,9 +1854,7 @@ function renderBmCal(){
   }
   document.getElementById('bm-grid').innerHTML=h;
   document.getElementById('bm-cnt').textContent=bmSel.size+'日 選択中';
-  // update register btn label
-  const btn=document.getElementById('bm-reg-btn');
-  if(btn&&cat) btn.textContent=`${cat.emoji} ${cat.name}を一括登録`;
+  updateBulkRegBtn();
 }
 function togBm(ds){if(bmSel.has(ds))bmSel.delete(ds);else bmSel.add(ds);renderBmCal();}
 function registerBulk(){
