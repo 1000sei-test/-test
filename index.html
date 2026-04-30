@@ -1267,11 +1267,11 @@ function renderM(){
   const maxG=sorted[0]?.[1]||1;
   let h='';
   if(sorted.length===0){h='<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">支出データがありません</div>';}
-  else sorted.forEach(([g,total])=>{
+  else sorted.forEach(([g,total],idx)=>{
     const col=gc(g);
     const sp=gmSp[g]||0;
     const spBadge=sp>0?`<span class="special-badge">特別¥${sp.toLocaleString()}</span>`:'';
-    const detailId=`gd_${g.replace(/[^\w]/g,'_')}`;
+    const detailId=`gd_${idx}`;
     const rows=rr.filter(r=>r.type==='out'&&r.genre===g)
       .sort((a,b)=>a.date>b.date?1:-1)
       .map(r=>`<div class="genre-detail-row">
@@ -1280,7 +1280,7 @@ function renderM(){
         <div class="dr-amt">¥${r.amount.toLocaleString()}</div>
       </div>`).join('');
     h+=`<div>
-      <div class="grow" onclick="toggleGenreDetail('${detailId}',this)">
+      <div class="grow" data-detail-id="${detailId}" onclick="handleGenreClick(this)">
         <div class="gdot" style="background:${col}"></div>
         <div class="gname">${g} ${spBadge}</div>
         <div class="gtrack"><div class="gfill" style="width:${total/maxG*100}%;background:${col}"></div></div>
@@ -1340,6 +1340,16 @@ function renderA(){
   const allAnnRecs=records.filter(r=>r.date.startsWith(annY+'')&&r.type==='out');
   renderPayBreakdown(allAnnRecs,'pay-bd-a');
   renderPayCalc(allAnnRecs, 'pay-calc-a-checks', 'pay-calc-a-total', 'pay-calc-a-detail', payCalcSelA);
+}
+
+function handleGenreClick(rowEl){
+  const id=rowEl.getAttribute('data-detail-id');
+  if(!id)return;
+  const el=document.getElementById(id);
+  if(!el)return;
+  const isOpen=el.classList.toggle('show');
+  const chev=rowEl.querySelector('.gchevron');
+  if(chev)chev.classList.toggle('open',isOpen);
 }
 
 function toggleGenreDetail(id,rowEl){
