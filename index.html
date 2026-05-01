@@ -707,7 +707,10 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
   <div id="sal-monthly">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <button class="anav-btn" id="sal-prev">◀</button>
-      <div style="font-size:17px;font-weight:700" id="sal-month-title"></div>
+      <div style="text-align:center">
+        <div style="font-size:17px;font-weight:700" id="sal-month-title"></div>
+        <div style="font-size:11px;color:#a89880;margin-top:1px" id="sal-month-sub"></div>
+      </div>
       <button class="anav-btn" id="sal-next">▶</button>
     </div>
 
@@ -2041,6 +2044,10 @@ function setSalSeg(s){
 
 function renderSalaryPage(){
   document.getElementById('sal-month-title').textContent=salY+'年 '+(salM+1)+'月';
+  // 前月分ラベル（例：4月 → 3月分）
+  const prevM=salM===0?12:salM;
+  const prevY=salM===0?salY-1:salY;
+  document.getElementById('sal-month-sub').textContent='（'+prevM+'月分給与）';
   const key=ym(salY,salM);
   const d=salaries[key]||{};
   document.getElementById('sal-base').value=d.base||'';
@@ -2117,8 +2124,8 @@ function renderSalAnnual(){
     totalDeduct+=deduct;
     totalBonus+=d.bonusNet||0;
     totalBonusGross+=d.bonusGross||0;
-    rows+=`<div style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid #e0e0e0;font-size:13px">
-      <div style="width:30px;font-weight:600">${m+1}月</div>
+    rows+=`<div style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid #e8e2d8;font-size:13px">
+      <div style="width:80px;font-weight:600">${m+1}月<span style="font-size:10px;color:#a89880;font-weight:400;margin-left:4px">（${m===0?12:m}月分）</span></div>
       <div style="flex:1">
         <div style="display:flex;gap:10px">
           <span style="color:#34c759;font-weight:600">手取 ¥${(d.net||0).toLocaleString()}</span>
