@@ -590,6 +590,11 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
       <div class="sc"><div class="sl">収入</div><div class="sv" style="color:var(--green)" id="ana-in">¥0</div></div>
       <div class="sc"><div class="sl">固定費</div><div class="sv" style="color:var(--purple)" id="ana-fix">¥0</div></div>
       <div class="sc"><div class="sl">変動費</div><div class="sv" style="color:var(--red)" id="ana-var">¥0</div></div>
+      <div class="sc" style="grid-column:1/-1;background:#e8f5e9;border:1px solid #a5d6a7">
+        <div class="sl" style="color:#5a8a5a">💴 給与手取り＋副業収入</div>
+        <div class="sv" style="color:#2e7d32" id="ana-total-income">¥0</div>
+        <div style="font-size:11px;color:#5a8a5a;margin-top:2px" id="ana-total-income-detail"></div>
+      </div>
       <div class="sc" style="grid-column:1/-1;background:#fff8f0;border:1px solid #f0d8b0">
         <div class="sl" style="color:var(--orange)">⚡ 特別支出（予算外）</div>
         <div class="sv" style="color:var(--orange)" id="ana-special">¥0</div>
@@ -720,41 +725,24 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
 
 ```
 <!-- 📷 写真から読み取り -->
-<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;border:2px dashed #007aff">
-  <div style="font-size:14px;font-weight:700;margin-bottom:8px;color:#007aff">📷 給与明細を写真で読み取る</div>
+<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;border:2px dashed var(--accent)">
+  <div style="font-size:14px;font-weight:700;margin-bottom:8px;color:var(--accent)">📷 給与明細を写真で読み取る</div>
   <div style="font-size:12px;color:#8e8e93;margin-bottom:10px">明細の写真を選択するとAIが自動入力します</div>
   <input type="file" id="sal-photo" accept="image/*" style="display:none" onchange="scanSalaryPhoto(event)">
-  <button onclick="document.getElementById('sal-photo').click()" style="width:100%;padding:10px;background:#007aff;color:#fff;border:none;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">📷 写真を選択</button>
+  <button onclick="document.getElementById('sal-photo').click()" style="width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">📷 写真を選択</button>
   <div id="sal-scan-status" style="font-size:12px;color:#8e8e93;margin-top:8px;text-align:center;display:none"></div>
 </div>
 
-<div class="icard">
+<!-- 動的フォーム（salItemsから生成） -->
+<div id="sal-form-income" class="icard">
   <div class="icard-t">💰 給与（支給）</div>
-  <div class="irow"><div class="ilbl">基本給</div><input class="ictrl" type="number" id="sal-base" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-base',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
-  <div class="irow"><div class="ilbl">住宅手当</div><input class="ictrl" type="number" id="sal-housing" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-housing',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
-  <div class="irow"><div class="ilbl">残業代</div><input class="ictrl" type="number" id="sal-overtime" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-overtime',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
-  <div class="irow"><div class="ilbl">通勤手当</div><input class="ictrl" type="number" id="sal-commute" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-commute',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
-  <div class="irow"><div class="ilbl">地域手当</div><input class="ictrl" type="number" id="sal-area" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-area',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
-  <div class="irow"><div class="ilbl">出張手当</div><input class="ictrl" type="number" id="sal-travel" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-travel',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
-  <div class="irow" style="background:#f7f7f7"><div class="ilbl" style="color:#8e8e93;font-size:13px">支給合計</div><div class="ictrl" id="sal-gross-display" style="color:#007aff;font-weight:700;text-align:right;font-size:15px">¥0</div></div>
+  <div id="sal-income-rows"></div>
+  <div class="irow" style="background:#f7f7f7"><div class="ilbl" style="color:#8e8e93;font-size:13px">支給合計</div><div class="ictrl" id="sal-gross-display" style="color:var(--accent);font-weight:700;text-align:right;font-size:15px">¥0</div></div>
   <div class="irow"><div class="ilbl">手取り</div><input class="ictrl" type="number" id="sal-net" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-net',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
 </div>
-<div class="icard">
-  <div class="icard-t">📋 社会保険料</div>
-  <div class="irow"><div class="ilbl">健康保険</div><input class="ictrl" type="number" id="sal-health" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-health',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
-  <div class="irow"><div class="ilbl">厚生年金</div><input class="ictrl" type="number" id="sal-pension" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-pension',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
-  <div class="irow"><div class="ilbl">雇用保険</div><input class="ictrl" type="number" id="sal-employ" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-employ',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
-  <div class="irow"><div class="ilbl">介護保険</div><input class="ictrl" type="number" id="sal-care" placeholder="0（40歳以上）" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-care',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
-</div>
-<div class="icard">
-  <div class="icard-t">🏛️ 税金</div>
-  <div class="irow"><div class="ilbl">所得税</div><input class="ictrl" type="number" id="sal-income-tax" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-income-tax',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
-  <div class="irow"><div class="ilbl">住民税</div><input class="ictrl" type="number" id="sal-resident-tax" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-resident-tax',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
-</div>
-<div class="icard">
-  <div class="icard-t">➕ その他控除</div>
-  <div class="irow"><div class="ilbl">会費・積立</div><input class="ictrl" type="number" id="sal-membership" placeholder="0" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-membership',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
-  <div class="irow"><div class="ilbl">その他</div><input class="ictrl" type="number" id="sal-other-deduct" placeholder="弁当代など" min="0" oninput="calcSalary()"><button onclick="openCalc('sal-other-deduct',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button></div>
+<div id="sal-form-deduct" class="icard">
+  <div class="icard-t">📋 控除</div>
+  <div id="sal-deduct-rows"></div>
 </div>
 <div class="icard">
   <div class="icard-t">🎁 ボーナス</div>
@@ -765,17 +753,21 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
   <div style="font-size:12px;color:#a89880;margin-bottom:10px">📊 今月のまとめ</div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
     <div style="background:#fff;border-radius:12px;padding:12px;border:1px solid #e8e2d8">
-      <div style="font-size:11px;color:#a89880">控除合計</div>
-      <div style="font-size:18px;font-weight:700;color:#c0604a;margin-top:2px" id="sal-deduct-total">¥0</div>
+      <div style="font-size:11px;color:#a89880">月収（額面）</div>
+      <div style="font-size:18px;font-weight:700;color:#2c2820;margin-top:2px" id="sal-gross-sum">¥0</div>
     </div>
     <div style="background:#fff;border-radius:12px;padding:12px;border:1px solid #e8e2d8">
       <div style="font-size:11px;color:#a89880">手取り</div>
       <div style="font-size:18px;font-weight:700;color:#6a9e7a;margin-top:2px" id="sal-net-total">¥0</div>
     </div>
-    <div style="background:#fff;border-radius:12px;padding:12px;border:1px solid #e8e2d8;grid-column:1/-1">
-      <div style="font-size:11px;color:#a89880">実質手取り <span style="font-size:10px;opacity:.7">（手取り＋その他控除）</span></div>
-      <div style="font-size:20px;font-weight:700;color:#5b7e6e;margin-top:2px" id="sal-real-net">¥0</div>
-      <div style="font-size:10px;color:#a89880;margin-top:2px" id="sal-real-net-note"></div>
+    <div style="background:#fff;border-radius:12px;padding:12px;border:1px solid #e8e2d8">
+      <div style="font-size:11px;color:#a89880">控除合計</div>
+      <div style="font-size:18px;font-weight:700;color:#c0604a;margin-top:2px" id="sal-deduct-total">¥0</div>
+    </div>
+    <div style="background:#fff;border-radius:12px;padding:12px;border:1px solid #e8e2d8">
+      <div style="font-size:11px;color:#a89880">実質手取り</div>
+      <div style="font-size:18px;font-weight:700;color:#5b7e6e;margin-top:2px" id="sal-real-net">¥0</div>
+      <div style="font-size:9px;color:#a89880;margin-top:1px" id="sal-real-net-note"></div>
     </div>
   </div>
 </div>
@@ -794,9 +786,27 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
     </div>
     <!-- 年間ヒーロー -->
     <div style="background:#f5f1ea;border:1px solid #e8e2d8;border-radius:18px;padding:20px;margin-bottom:12px">
-      <div style="font-size:12px;color:#a89880">年間手取り合計</div>
-      <div style="font-size:30px;font-weight:700;margin:4px 0;color:#5b7e6e" id="sal-ann-net-total">¥0</div>
-      <div style="font-size:13px;color:#a89880;margin-top:6px">額面合計: <span style="font-weight:700;color:#2c2820" id="sal-ann-gross-total">¥0</span></div>
+      <div style="font-size:12px;color:#a89880">年収（額面）</div>
+      <div style="font-size:30px;font-weight:700;margin:4px 0;color:#2c2820" id="sal-ann-gross-total">¥0</div>
+      <div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:11px;color:#a89880">年間手取り</div>
+          <div style="font-size:18px;font-weight:700;color:#5b7e6e" id="sal-ann-net-total">¥0</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#a89880">年間控除</div>
+          <div style="font-size:18px;font-weight:700;color:#c0604a" id="sal-ann-deduct-disp">¥0</div>
+        </div>
+      </div>
+    </div>
+    <!-- 給与＋副業 合計カード -->
+    <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:14px;padding:14px;margin-bottom:12px">
+      <div style="font-size:12px;color:#5a8a5a;margin-bottom:6px">💴 給与手取り＋副業・その他収入</div>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <div style="font-size:26px;font-weight:700;color:#2e7d32" id="sal-ann-grand-total">¥0</div>
+        <div style="font-size:12px;color:#5a8a5a">年間合計収入</div>
+      </div>
+      <div style="font-size:11px;color:#5a8a5a;margin-top:6px" id="sal-ann-grand-detail"></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
       <div style="background:#fff;border-radius:12px;padding:12px;border:1px solid #e0e0e0">
@@ -827,8 +837,112 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
 
 <!-- SETTINGS -->
 
+<!-- INCOME PAGE -->
+
+<div class="page" id="page-income">
+<div class="ip">
+  <!-- セグメント -->
+  <div class="aseg" style="margin-bottom:14px">
+    <button class="aseg-btn active" id="inc-seg-m" onclick="setIncSeg('m')">月別</button>
+    <button class="aseg-btn"        id="inc-seg-a" onclick="setIncSeg('a')">年間</button>
+  </div>
+
+  <!-- 月別 -->
+
+  <div id="inc-monthly">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <button class="anav-btn" id="inc-prev">◀</button>
+      <div style="text-align:center">
+        <div style="font-size:17px;font-weight:700" id="inc-month-title"></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:1px" id="inc-month-total"></div>
+      </div>
+      <button class="anav-btn" id="inc-next">▶</button>
+    </div>
+    <div class="icard">
+      <div class="icard-t">💴 収入を記録</div>
+      <div class="irow"><div class="ilbl">日付</div><input class="ictrl" type="date" id="inc-date"></div>
+      <div class="irow"><div class="ilbl">タイトル</div><input class="ictrl" type="text" id="inc-title" placeholder="例: メルカリ売上" oninput="checkIncBtn()"></div>
+      <div class="irow">
+        <div class="ilbl">カテゴリ</div>
+        <select class="ictrl" id="inc-cat">
+          <option>メルカリ</option>
+          <option>副業</option>
+          <option>フリーランス</option>
+          <option>せどり</option>
+          <option>投資</option>
+          <option>その他</option>
+        </select>
+      </div>
+      <div class="irow"><div class="ilbl">金額</div><input class="ictrl" type="number" id="inc-amt" placeholder="0" min="0" oninput="checkIncBtn()"><button onclick="openCalc('inc-amt',checkIncBtn)" style="border:none;background:none;font-size:18px;cursor:pointer;padding:0 0 0 6px;color:#a89880">🧮</button></div>
+      <div class="irow"><div class="ilbl">メモ</div><input class="ictrl" type="text" id="inc-memo" placeholder="任意"></div>
+    </div>
+    <button class="save-btn" id="inc-save-btn" onclick="saveIncome()" disabled style="background:#c7c7cc;cursor:default;margin-bottom:16px">保存する</button>
+    <div class="icard">
+      <div class="icard-t">今月の収入一覧</div>
+      <div id="inc-list"></div>
+    </div>
+  </div>
+
+  <!-- 年間 -->
+
+  <div id="inc-annual" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <button class="anav-btn" id="inc-ann-prev">◀</button>
+      <div style="font-size:17px;font-weight:700" id="inc-ann-title"></div>
+      <button class="anav-btn" id="inc-ann-next">▶</button>
+    </div>
+    <!-- 年間合計ヒーロー -->
+    <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:18px;padding:18px;margin-bottom:12px">
+      <div style="font-size:12px;color:#5a8a5a">年間収入合計</div>
+      <div style="font-size:30px;font-weight:700;color:#2e7d32;margin:4px 0" id="inc-ann-total">¥0</div>
+      <div style="font-size:12px;color:#5a8a5a" id="inc-ann-count">0件</div>
+    </div>
+    <!-- カテゴリ別 -->
+    <div class="icard">
+      <div class="icard-t">カテゴリ別合計</div>
+      <div id="inc-ann-cat"></div>
+    </div>
+    <!-- 月別一覧 -->
+    <div class="icard">
+      <div class="icard-t">月別一覧</div>
+      <div id="inc-ann-months"></div>
+    </div>
+  </div>
+</div>
+</div>
+
 <div class="page" id="page-settings">
 <div class="sp">
+
+  <!-- 給与項目設定 -->
+
+  <div class="sst">💰 給与項目設定</div>
+  <div class="scard">
+    <div class="ftab-row">
+      <button class="ftab active" id="sitab-inc" onclick="setSiTab('inc')">支給項目</button>
+      <button class="ftab"        id="sitab-ded" onclick="setSiTab('ded')">控除項目</button>
+    </div>
+    <div id="si-inc-wrap">
+      <div class="fi-list" id="si-inc-list"></div>
+      <div class="fi-form">
+        <div class="fi-form-title">＋ 支給項目を追加</div>
+        <div class="fi-form-row"><label>名前</label><input type="text" id="si-inc-name" placeholder="例: 出張手当" oninput="checkSiBtn('inc')"></div>
+        <button class="fi-add-btn" id="si-inc-btn" onclick="addSalItem('inc')" disabled>追加する</button>
+      </div>
+    </div>
+    <div id="si-ded-wrap" style="display:none">
+      <div class="fi-list" id="si-ded-list"></div>
+      <div class="fi-form">
+        <div class="fi-form-title">＋ 控除項目を追加</div>
+        <div class="fi-form-row"><label>名前</label><input type="text" id="si-ded-name" placeholder="例: 組合費" oninput="checkSiBtn('ded')"></div>
+        <div class="fi-form-row" style="align-items:center;gap:8px">
+          <label style="flex-shrink:0;font-size:13px;color:var(--muted)">実質手取りに足す</label>
+          <input type="checkbox" id="si-ded-addnet" style="width:18px;height:18px;cursor:pointer">
+        </div>
+        <button class="fi-add-btn" id="si-ded-btn" onclick="addSalItem('ded')" disabled>追加する</button>
+      </div>
+    </div>
+  </div>
 
   <!-- 固定費 -->
 
@@ -965,6 +1079,7 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
   <button class="nav-btn active" id="nav-cal"      onclick="showPage('cal')">     <span class="nav-ic">📅</span>カレンダー</button>
   <button class="nav-btn"        id="nav-ana"      onclick="showPage('ana')">     <span class="nav-ic">📊</span>分析</button>
   <button class="nav-btn"        id="nav-input"    onclick="showPage('input')">   <span class="nav-ic">✏️</span>入力</button>
+  <button class="nav-btn"        id="nav-income"   onclick="showPage('income')">  <span class="nav-ic">💴</span>収入</button>
   <button class="nav-btn"        id="nav-salary"   onclick="showPage('salary')">  <span class="nav-ic">💰</span>給与</button>
   <button class="nav-btn"        id="nav-settings" onclick="showPage('settings')"><span class="nav-ic">⚙️</span>設定</button>
 </nav>
@@ -986,12 +1101,36 @@ let bulkCats = JSON.parse(localStorage.getItem('kk_bulkCats') || JSON.stringify(
 ]));
 let selBulkId = bulkCats[0]?.id || null;
 
-// salaries: {"YYYY-MM": {gross,net,health,pension,employ,care,incomeTax,residentTax,bonusGross,bonusNet}}
+// salItems: [{id,name,type:'inc'|'ded',addToNet:bool}]
+const DEFAULT_SAL_ITEMS=[
+  {id:'si_base',name:'基本給',type:'inc',addToNet:false},
+  {id:'si_housing',name:'住宅手当',type:'inc',addToNet:false},
+  {id:'si_overtime',name:'残業代',type:'inc',addToNet:false},
+  {id:'si_commute',name:'通勤手当',type:'inc',addToNet:false},
+  {id:'si_area',name:'地域手当',type:'inc',addToNet:false},
+  {id:'si_travel',name:'出張手当',type:'inc',addToNet:false},
+  {id:'si_health',name:'健康保険',type:'ded',addToNet:false},
+  {id:'si_pension',name:'厚生年金',type:'ded',addToNet:false},
+  {id:'si_employ',name:'雇用保険',type:'ded',addToNet:false},
+  {id:'si_care',name:'介護保険',type:'ded',addToNet:false},
+  {id:'si_itax',name:'所得税',type:'ded',addToNet:false},
+  {id:'si_rtax',name:'住民税',type:'ded',addToNet:false},
+  {id:'si_member',name:'会費・積立',type:'ded',addToNet:false},
+  {id:'si_other',name:'その他控除',type:'ded',addToNet:true},
+];
+let salItems=JSON.parse(localStorage.getItem('kk_sal_items')||'null')||DEFAULT_SAL_ITEMS;
+let siTab='inc';
+
+// salaries: {"YYYY-MM": {net,bonusGross,bonusNet,items:{id:value}}}
 let salaries = JSON.parse(localStorage.getItem('kk_salaries') || '{}');
 let salY, salM;
 
+// incomes: [{id, date, title, cat, amount, memo}]
+let incomes = JSON.parse(localStorage.getItem('kk_incomes') || '[]');
+let incY, incM;
+
 let calY,calM,anaY,anaM,annY,bmY,bmM;
-let salSeg='m', salAnnY;
+let salSeg='m', salAnnY, incSeg='m', incAnnY;
 let bmSel=new Set(),selDay=null,anaSeg='m',ftab='m';
 let payCalcSelM=new Set(), payCalcSelA=new Set();
 const today=new Date();
@@ -1012,6 +1151,8 @@ function init(){
   calM=anaM=today.getMonth();
   salY=today.getFullYear(); salM=today.getMonth();
   salAnnY=today.getFullYear();
+  incY=today.getFullYear(); incM=today.getMonth();
+  incAnnY=today.getFullYear(); incSeg='m';
   bmY=today.getFullYear(); bmM=today.getMonth();
 
   // month selects
@@ -1034,6 +1175,10 @@ function init(){
   if($('sal-next'))     $('sal-next').onclick=()=>{salM++;if(salM>11){salM=0;salY++;}renderSalaryPage()};
   if($('sal-ann-prev')) $('sal-ann-prev').onclick=()=>{salAnnY--;renderSalAnnual()};
   if($('sal-ann-next')) $('sal-ann-next').onclick=()=>{salAnnY++;renderSalAnnual()};
+  if($('inc-prev'))     $('inc-prev').onclick=()=>{incM--;if(incM<0){incM=11;incY--;}renderIncomePage()};
+  if($('inc-next'))     $('inc-next').onclick=()=>{incM++;if(incM>11){incM=0;incY++;}renderIncomePage()};
+  if($('inc-ann-prev')) $('inc-ann-prev').onclick=()=>{incAnnY--;renderIncAnnual()};
+  if($('inc-ann-next')) $('inc-ann-next').onclick=()=>{incAnnY++;renderIncAnnual()};
 
   applyMaster();
   autoRegFixed();
@@ -1057,7 +1202,8 @@ function showPage(p){
   if(p==='cal')      renderCal();
   if(p==='ana')      renderAna();
   if(p==='salary')   renderSalaryPage();
-  if(p==='settings'){renderFixedLists();renderPayList();renderGenreList();renderBulkCatList();renderBulkCatBtns();renderBmCal();applyMaster();}
+  if(p==='income')   renderIncomePage();
+  if(p==='settings'){renderFixedLists();renderPayList();renderGenreList();renderSiLists();renderBulkCatList();renderBulkCatBtns();renderBmCal();applyMaster();}
 }
 
 // ===== HEADER =====
@@ -1191,15 +1337,121 @@ function applyMaster(){
     const el=document.getElementById(id);
     if(el) el.innerHTML=gs.map(g=>`<option>${g}</option>`).join('');
   });
-  if(document.getElementById('s-cards')) document.getElementById('s-cards').value=(master.cards||[]).join(', ');
-  // マスターボタンは内容があれば有効化
-  const mb=document.getElementById('master-btn');
-  if(mb){
-    const ok=ps.length>0||gs.length>0;
-    mb.disabled=!ok;
-    mb.style.background=ok?'#007aff':'#c7c7cc';
-  }
+  // master-btn は廃止済み
 }
+
+function setIncSeg(s){
+  incSeg=s;
+  document.getElementById('inc-seg-m').classList.toggle('active',s==='m');
+  document.getElementById('inc-seg-a').classList.toggle('active',s==='a');
+  document.getElementById('inc-monthly').style.display=s==='m'?'block':'none';
+  document.getElementById('inc-annual').style.display=s==='a'?'block':'none';
+  if(s==='a') renderIncAnnual();
+}
+
+function renderIncAnnual(){
+  document.getElementById('inc-ann-title').textContent=incAnnY+'年';
+  const annRecs=incomes.filter(r=>r.date.startsWith(String(incAnnY)));
+  const total=annRecs.reduce((s,r)=>s+r.amount,0);
+  document.getElementById('inc-ann-total').textContent='¥'+total.toLocaleString();
+  document.getElementById('inc-ann-count').textContent=annRecs.length+'件';
+
+  // カテゴリ別
+  const catMap={};
+  annRecs.forEach(r=>{catMap[r.cat]=(catMap[r.cat]||0)+r.amount;});
+  const sorted=Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
+  const maxV=sorted[0]?.[1]||1;
+  let catH='';
+  if(sorted.length===0){
+    catH='<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">データがありません</div>';
+  } else {
+    sorted.forEach(([cat,amt])=>{
+      catH+=`<div class="grow" style="cursor:default">
+        <div class="gdot" style="background:#2e7d32"></div>
+        <div class="gname">${cat}</div>
+        <div class="gtrack"><div class="gfill" style="width:${amt/maxV*100}%;background:#2e7d32;opacity:.7"></div></div>
+        <div class="gamt" style="color:#2e7d32">¥${amt.toLocaleString()}</div>
+      </div>`;
+    });
+  }
+  document.getElementById('inc-ann-cat').innerHTML=catH;
+
+  // 月別
+  let monthH='';
+  for(let m=0;m<12;m++){
+    const key=ym(incAnnY,m);
+    const mRecs=annRecs.filter(r=>r.date.startsWith(key));
+    if(mRecs.length===0) continue;
+    const mTotal=mRecs.reduce((s,r)=>s+r.amount,0);
+    monthH+=`<div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <div style="width:32px;font-weight:600;color:var(--muted)">${m+1}月</div>
+      <div style="flex:1;font-size:12px;color:var(--muted)">${mRecs.map(r=>r.title).join('、')}</div>
+      <div style="font-weight:700;color:#2e7d32">¥${mTotal.toLocaleString()}</div>
+    </div>`;
+  }
+  document.getElementById('inc-ann-months').innerHTML=monthH||'<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">データがありません</div>';
+}
+
+// ===== INCOME =====
+function renderIncomePage(){
+  document.getElementById('inc-date').value=fmtDate(today);
+  document.getElementById('inc-month-title').textContent=incY+'年 '+(incM+1)+'月';
+  const key=ym(incY,incM);
+  const monthInc=incomes.filter(r=>r.date.startsWith(key));
+  const total=monthInc.reduce((s,r)=>s+r.amount,0);
+  document.getElementById('inc-month-total').textContent=total>0?'合計 ¥'+total.toLocaleString():'記録なし';
+  const list=document.getElementById('inc-list');
+  if(monthInc.length===0){
+    list.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">この月の収入記録がありません</div>';
+    return;
+  }
+  list.innerHTML=monthInc.sort((a,b)=>b.date>a.date?1:-1).map(r=>`
+    <div class="ri">
+      <div class="ri-ic" style="background:#e8f5e9">💴</div>
+      <div class="ri-info">
+        <div class="ri-name">${r.title}</div>
+        <div class="ri-sub">${r.date.slice(5)} ・ ${r.cat}${r.memo?' ・ '+r.memo:''}</div>
+      </div>
+      <div class="ri-amt in">+¥${r.amount.toLocaleString()}</div>
+      <button class="ri-del" onclick="delIncome('${r.id}')">✕</button>
+    </div>`).join('');
+}
+
+function checkIncBtn(){
+  const title=document.getElementById('inc-title').value.trim();
+  const amt=parseInt(document.getElementById('inc-amt').value)||0;
+  const ok=!!(title&&amt>0);
+  const btn=document.getElementById('inc-save-btn');
+  btn.disabled=!ok;
+  btn.style.background=ok?'var(--accent)':'#c7c7cc';
+  btn.style.cursor=ok?'pointer':'default';
+}
+
+function saveIncome(){
+  const date=document.getElementById('inc-date').value;
+  const title=document.getElementById('inc-title').value.trim();
+  const cat=document.getElementById('inc-cat').value;
+  const amount=parseInt(document.getElementById('inc-amt').value)||0;
+  const memo=document.getElementById('inc-memo').value.trim();
+  if(!date||!title||!amount){toast('日付・タイトル・金額は必須です');return;}
+  incomes.push({id:uid(),date,title,cat,amount,memo});
+  sv('kk_incomes',incomes);
+  document.getElementById('inc-title').value='';
+  document.getElementById('inc-amt').value='';
+  document.getElementById('inc-memo').value='';
+  checkIncBtn();
+  renderIncomePage();
+  toast('収入を保存しました ✓');
+}
+
+function delIncome(id){
+  if(!confirm('削除しますか？'))return;
+  incomes=incomes.filter(r=>r.id!==id);
+  sv('kk_incomes',incomes);
+  renderIncomePage();
+  toast('削除しました');
+}
+
 // ===== CALCULATOR =====
 let calcTargetId=null, calcCallback=null;
 let calcLeft=0, calcOper='', calcCurrent='0', calcJustEq=false, calcHasDecimal=false;
@@ -1402,6 +1654,21 @@ function renderM(){
   const spTotal=rr.filter(r=>r.type==='out'&&r.special).reduce((s,r)=>s+r.amount,0);
   const spEl=document.getElementById('ana-special');
   if(spEl) spEl.textContent='¥'+spTotal.toLocaleString();
+  // 給与手取り＋副業収入
+  const salKey=ym(anaY,anaM);
+  const salData=salaries[salKey]||{};
+  const salNet=(salData.net||0)+(salData.bonusNet||0)+(salData.otherDeduct||0);
+  const incomeTotal=incomes.filter(r=>r.date.startsWith(salKey)).reduce((s,r)=>s+r.amount,0);
+  const grandTotal=salNet+incomeTotal;
+  const tiEl=document.getElementById('ana-total-income');
+  const tdEl=document.getElementById('ana-total-income-detail');
+  if(tiEl) tiEl.textContent='¥'+grandTotal.toLocaleString();
+  if(tdEl){
+    const parts=[];
+    if(salNet>0) parts.push('給与手取 ¥'+salNet.toLocaleString());
+    if(incomeTotal>0) parts.push('副業等 ¥'+incomeTotal.toLocaleString());
+    tdEl.textContent=parts.length>0?parts.join(' ＋ '):'給与・収入データを入力してください';
+  }
   const budget=budgets[key]||0;
   document.getElementById('b-inp').value=budget||'';
   // ボタン状態をリセット
@@ -1770,7 +2037,7 @@ function saveMaster(){
   toast('設定を更新しました ✓');
 }
 function saveCards(){
-  master.cards=document.getElementById('s-cards').value.split(',').map(s=>s.trim()).filter(Boolean);
+  master.cards=[];  // クレカ情報は廃止
   sv('kk_master',master);
   toast('クレカ情報を保存しました ✓');
 }
@@ -2038,6 +2305,94 @@ function registerBulk(){
   bmSel.clear();renderBmCal();
   toast(cat.emoji+' 一括登録しました ✓');
 }
+// ===== SAL ITEM SETTINGS =====
+function setSiTab(t){
+  siTab=t;
+  document.getElementById('sitab-inc').classList.toggle('active',t==='inc');
+  document.getElementById('sitab-ded').classList.toggle('active',t==='ded');
+  document.getElementById('si-inc-wrap').style.display=t==='inc'?'block':'none';
+  document.getElementById('si-ded-wrap').style.display=t==='ded'?'block':'none';
+}
+
+function renderSiLists(){
+  ['inc','ded'].forEach(type=>{
+    const el=document.getElementById(`si-${type}-list`);
+    if(!el) return;
+    const items=salItems.filter(s=>s.type===type);
+    if(!items.length){el.innerHTML=`<div class="fi-empty">${type==='inc'?'支給':'控除'}項目がありません</div>`;return;}
+    el.innerHTML=items.map((s,i)=>`
+      <div class="fi-item">
+        <div style="display:flex;flex-direction:column;gap:2px;margin-right:6px">
+          <button onclick="moveSalItem('${s.id}',-1)" style="border:none;background:none;font-size:13px;cursor:pointer;color:${i===0?'#ddd':'#a89880'};padding:0;line-height:1" ${i===0?'disabled':''}>▲</button>
+          <button onclick="moveSalItem('${s.id}',1)" style="border:none;background:none;font-size:13px;cursor:pointer;color:${i===items.length-1?'#ddd':'#a89880'};padding:0;line-height:1" ${i===items.length-1?'disabled':''}>▼</button>
+        </div>
+        <div class="fi-left">
+          <div class="fi-name">${s.name}</div>
+          ${s.addToNet?'<div class="fi-meta">実質手取りに加算</div>':''}
+        </div>
+        <button class="fi-edit" onclick="editSalItem('${s.id}')">編集</button>
+        <button class="fi-del" onclick="delSalItem('${s.id}')">✕</button>
+      </div>`).join('');
+  });
+}
+
+function checkSiBtn(type){
+  const name=document.getElementById(`si-${type}-name`).value.trim();
+  const btn=document.getElementById(`si-${type}-btn`);
+  btn.disabled=!name;
+  btn.style.background=name?'var(--accent)':'#d4cfc8';
+}
+
+function addSalItem(type){
+  const name=document.getElementById(`si-${type}-name`).value.trim();
+  if(!name){toast('名前を入力してください');return;}
+  const addToNet=type==='ded'&&document.getElementById('si-ded-addnet').checked;
+  salItems.push({id:uid(),name,type,addToNet});
+  sv('kk_sal_items',salItems);
+  document.getElementById(`si-${type}-name`).value='';
+  if(type==='ded') document.getElementById('si-ded-addnet').checked=false;
+  checkSiBtn(type);
+  renderSiLists();
+  renderSalForm();
+  toast('追加しました ✓');
+}
+
+function delSalItem(id){
+  if(!confirm('削除しますか？\n（保存済みの給与データは変わりません）'))return;
+  salItems=salItems.filter(s=>s.id!==id);
+  sv('kk_sal_items',salItems);
+  renderSiLists();
+  renderSalForm();
+  toast('削除しました');
+}
+
+function editSalItem(id){
+  const s=salItems.find(x=>x.id===id);
+  if(!s) return;
+  const name=prompt('項目名を変更',s.name);
+  if(!name||!name.trim()) return;
+  s.name=name.trim();
+  sv('kk_sal_items',salItems);
+  renderSiLists();
+  renderSalForm();
+  toast('更新しました ✓');
+}
+
+function moveSalItem(id,dir){
+  const typeItems=salItems.filter(s=>s.type===salItems.find(x=>x.id===id)?.type);
+  const globalIdx=salItems.findIndex(s=>s.id===id);
+  const typeIdx=typeItems.findIndex(s=>s.id===id);
+  const j=typeIdx+dir;
+  if(j<0||j>=typeItems.length) return;
+  const swapId=typeItems[j].id;
+  const gi=salItems.findIndex(s=>s.id===id);
+  const gj=salItems.findIndex(s=>s.id===swapId);
+  [salItems[gi],salItems[gj]]=[salItems[gj],salItems[gi]];
+  sv('kk_sal_items',salItems);
+  renderSiLists();
+  renderSalForm();
+}
+
 // ===== SALARY =====
 
 function setSalSeg(s){
@@ -2049,69 +2404,84 @@ function setSalSeg(s){
   if(s==='a') renderSalAnnual();
 }
 
+function renderSalForm(){
+  // 支給項目
+  const incItems=salItems.filter(s=>s.type==='inc');
+  const incEl=document.getElementById('sal-income-rows');
+  if(incEl) incEl.innerHTML=incItems.map(s=>`
+    <div class="irow">
+      <div class="ilbl">${s.name}</div>
+      <input class="ictrl" type="number" id="sif_${s.id}" placeholder="0" min="0" oninput="calcSalary()">
+      <button onclick="openCalc('sif_${s.id}',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button>
+    </div>`).join('');
+  // 控除項目
+  const dedItems=salItems.filter(s=>s.type==='ded');
+  const dedEl=document.getElementById('sal-deduct-rows');
+  if(dedEl) dedEl.innerHTML=dedItems.map(s=>`
+    <div class="irow">
+      <div class="ilbl">${s.name}</div>
+      <input class="ictrl" type="number" id="sif_${s.id}" placeholder="0" min="0" oninput="calcSalary()">
+      <button onclick="openCalc('sif_${s.id}',calcSalary)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button>
+    </div>`).join('');
+}
+
 function renderSalaryPage(){
   document.getElementById('sal-month-title').textContent=salY+'年 '+(salM+1)+'月';
-  // 前月分ラベル（例：4月 → 3月分）
   const prevM=salM===0?12:salM;
-  const prevY=salM===0?salY-1:salY;
   document.getElementById('sal-month-sub').textContent='（'+prevM+'月分給与）';
+  renderSalForm();
   const key=ym(salY,salM);
   const d=salaries[key]||{};
-  document.getElementById('sal-base').value=d.base||'';
-  document.getElementById('sal-housing').value=d.housing||'';
-  document.getElementById('sal-overtime').value=d.overtime||'';
-  document.getElementById('sal-commute').value=d.commute||'';
-  document.getElementById('sal-area').value=d.area||'';
-  document.getElementById('sal-travel').value=d.travel||'';
-  document.getElementById('sal-net').value=d.net||'';
-  document.getElementById('sal-health').value=d.health||'';
-  document.getElementById('sal-pension').value=d.pension||'';
-  document.getElementById('sal-employ').value=d.employ||'';
-  document.getElementById('sal-care').value=d.care||'';
-  document.getElementById('sal-income-tax').value=d.incomeTax||'';
-  document.getElementById('sal-resident-tax').value=d.residentTax||'';
-  document.getElementById('sal-membership').value=d.membership||'';
-  document.getElementById('sal-other-deduct').value=d.otherDeduct||'';
-  document.getElementById('sal-bonus-gross').value=d.bonusGross||'';
-  document.getElementById('sal-bonus-net').value=d.bonusNet||'';
+  // 動的項目の値を復元
+  salItems.forEach(s=>{
+    const el=document.getElementById('sif_'+s.id);
+    if(el) el.value=d.items?.[s.id]||'';
+  });
+  // 固定フィールド
+  const net=document.getElementById('sal-net');
+  const bg=document.getElementById('sal-bonus-gross');
+  const bn=document.getElementById('sal-bonus-net');
+  if(net) net.value=d.net||'';
+  if(bg)  bg.value=d.bonusGross||'';
+  if(bn)  bn.value=d.bonusNet||'';
   calcSalary();
 }
 
 function calcSalary(){
-  const v=id=>parseInt(document.getElementById(id).value)||0;
-  const gross=v('sal-base')+v('sal-housing')+v('sal-overtime')+v('sal-commute')+v('sal-area')+v('sal-travel');
-  const deduct=v('sal-health')+v('sal-pension')+v('sal-employ')+v('sal-care')+v('sal-income-tax')+v('sal-resident-tax')+v('sal-membership')+v('sal-other-deduct');
+  const v=id=>{const el=document.getElementById(id);return el?parseInt(el.value)||0:0;};
+  // 支給合計
+  const gross=salItems.filter(s=>s.type==='inc').reduce((sum,s)=>sum+v('sif_'+s.id),0);
+  // 控除合計
+  const deduct=salItems.filter(s=>s.type==='ded').reduce((sum,s)=>sum+v('sif_'+s.id),0);
+  // 実質手取りに足す控除
+  const addBack=salItems.filter(s=>s.type==='ded'&&s.addToNet).reduce((sum,s)=>sum+v('sif_'+s.id),0);
   const net=v('sal-net');
   const bonusNet=v('sal-bonus-net');
-  const otherDeduct=v('sal-other-deduct');
-  const realNet=net+bonusNet+otherDeduct;
+  const realNet=net+bonusNet+addBack;
   const dispEl=document.getElementById('sal-gross-display');
   if(dispEl) dispEl.textContent='¥'+gross.toLocaleString();
-  document.getElementById('sal-deduct-total').textContent='¥'+deduct.toLocaleString();
-  document.getElementById('sal-net-total').textContent='¥'+(net+bonusNet).toLocaleString();
-  document.getElementById('sal-real-net').textContent='¥'+realNet.toLocaleString();
-  const noteEl=document.getElementById('sal-real-net-note');
-  if(otherDeduct>0){
-    noteEl.textContent='手取り ¥'+(net+bonusNet).toLocaleString()+' ＋ その他控除 ¥'+otherDeduct.toLocaleString();
-  } else {
-    noteEl.textContent='その他控除を入力すると足し算されます';
-  }
+  const grossSumEl=document.getElementById('sal-gross-sum');
+  if(grossSumEl) grossSumEl.textContent='¥'+gross.toLocaleString();
+  const dtEl=document.getElementById('sal-deduct-total');
+  const ntEl=document.getElementById('sal-net-total');
+  const rnEl=document.getElementById('sal-real-net');
+  const rnNote=document.getElementById('sal-real-net-note');
+  if(dtEl) dtEl.textContent='¥'+deduct.toLocaleString();
+  if(ntEl) ntEl.textContent='¥'+(net+bonusNet).toLocaleString();
+  if(rnEl) rnEl.textContent='¥'+realNet.toLocaleString();
+  if(rnNote) rnNote.textContent=addBack>0?'手取り ¥'+(net+bonusNet).toLocaleString()+' ＋ 控除加算 ¥'+addBack.toLocaleString():'実質手取りに足す控除を設定すると加算されます';
 }
 
 function saveSalary(){
-  const v=id=>parseInt(document.getElementById(id).value)||0;
+  const v=id=>{const el=document.getElementById(id);return el?parseInt(el.value)||0:0;};
   const key=ym(salY,salM);
-  const gross=v('sal-base')+v('sal-housing')+v('sal-overtime')+v('sal-commute')+v('sal-area')+v('sal-travel');
+  const items={};
+  salItems.forEach(s=>{items[s.id]=v('sif_'+s.id);});
+  const gross=salItems.filter(s=>s.type==='inc').reduce((sum,s)=>sum+v('sif_'+s.id),0);
   salaries[key]={
-    gross,
-    base:v('sal-base'),housing:v('sal-housing'),overtime:v('sal-overtime'),
-    commute:v('sal-commute'),area:v('sal-area'),travel:v('sal-travel'),
-    net:v('sal-net'),
-    health:v('sal-health'),pension:v('sal-pension'),
-    employ:v('sal-employ'),care:v('sal-care'),
-    incomeTax:v('sal-income-tax'),residentTax:v('sal-resident-tax'),
-    membership:v('sal-membership'),otherDeduct:v('sal-other-deduct'),
-    bonusGross:v('sal-bonus-gross'),bonusNet:v('sal-bonus-net')
+    gross, net:v('sal-net'),
+    bonusGross:v('sal-bonus-gross'), bonusNet:v('sal-bonus-net'),
+    items
   };
   sv('kk_salaries',salaries);
   toast('給与情報を保存しました ✓');
@@ -2126,6 +2496,7 @@ function renderSalAnnual(){
     const d=salaries[key];
     if(!d) continue;
     const deduct=(d.health||0)+(d.pension||0)+(d.employ||0)+(d.care||0)+(d.incomeTax||0)+(d.residentTax||0)+(d.membership||0)+(d.otherDeduct||0);
+    const monthOtherInc=incomes.filter(r=>r.date.startsWith(ym(salAnnY,m))).reduce((s,r)=>s+r.amount,0);
     totalGross+=d.gross||0;
     totalNet+=d.net||0;
     totalDeduct+=deduct;
@@ -2134,11 +2505,12 @@ function renderSalAnnual(){
     rows+=`<div style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid #e8e2d8;font-size:13px">
       <div style="width:80px;font-weight:600">${m+1}月<span style="font-size:10px;color:#a89880;font-weight:400;margin-left:4px">（${m===0?12:m}月分）</span></div>
       <div style="flex:1">
-        <div style="display:flex;gap:10px">
-          <span style="color:#34c759;font-weight:600">手取 ¥${(d.net||0).toLocaleString()}</span>
-          <span style="color:#8e8e93">額面 ¥${(d.gross||0).toLocaleString()}</span>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <span style="color:#5b7e6e;font-weight:600">手取 ¥${(d.net||0).toLocaleString()}</span>
+          <span style="color:#a89880">額面 ¥${(d.gross||0).toLocaleString()}</span>
+          ${monthOtherInc>0?`<span style="color:#2e7d32;font-weight:600">副業 ¥${monthOtherInc.toLocaleString()}</span>`:''}
         </div>
-        <div style="font-size:11px;color:#8e8e93;margin-top:2px">控除 ¥${deduct.toLocaleString()}${d.bonusNet?` ／ ボーナス手取 ¥${d.bonusNet.toLocaleString()}`:''}</div>
+        <div style="font-size:11px;color:#a89880;margin-top:2px">控除 ¥${deduct.toLocaleString()}${d.bonusNet?` ／ ボーナス ¥${d.bonusNet.toLocaleString()}`:''}</div>
       </div>
     </div>`;
   }
@@ -2146,9 +2518,23 @@ function renderSalAnnual(){
   document.getElementById('sal-ann-net-total').textContent='¥'+totalNet.toLocaleString();
   document.getElementById('sal-ann-gross-total').textContent='¥'+(totalGross+totalBonusGross).toLocaleString();
   document.getElementById('sal-ann-deduct').textContent='¥'+totalDeduct.toLocaleString();
+  const dEl=document.getElementById('sal-ann-deduct-disp');
+  if(dEl) dEl.textContent='¥'+totalDeduct.toLocaleString();
   document.getElementById('sal-ann-bonus').textContent='¥'+totalBonus.toLocaleString();
   document.getElementById('sal-ann-bonus-gross').textContent='¥'+totalBonusGross.toLocaleString();
   document.getElementById('sal-ann-diff').textContent='¥'+diff.toLocaleString();
+  // 給与＋副業合計
+  const annIncTotal=incomes.filter(r=>r.date.startsWith(String(salAnnY))).reduce((s,r)=>s+r.amount,0);
+  const grandTotal=totalNet+annIncTotal;
+  const gtEl=document.getElementById('sal-ann-grand-total');
+  const gdEl=document.getElementById('sal-ann-grand-detail');
+  if(gtEl) gtEl.textContent='¥'+grandTotal.toLocaleString();
+  if(gdEl){
+    const parts=[];
+    if(totalNet>0) parts.push('給与手取 ¥'+totalNet.toLocaleString());
+    if(annIncTotal>0) parts.push('副業等 ¥'+annIncTotal.toLocaleString());
+    gdEl.textContent=parts.length>0?parts.join(' ＋ '):'給与・収入データを入力してください';
+  }
   document.getElementById('sal-ann-table').innerHTML=rows||'<div style="padding:16px;text-align:center;color:#8e8e93;font-size:13px">データがありません</div>';
 }
 
@@ -2187,23 +2573,24 @@ async function scanSalaryPhoto(e){
     const text=data.content.map(c=>c.text||'').join('');
     const clean=text.replace(/```json|```/g,'').trim();
     const parsed=JSON.parse(clean);
-    if(parsed.base)         document.getElementById('sal-base').value=parsed.base;
-    if(parsed.housing)      document.getElementById('sal-housing').value=parsed.housing;
-    if(parsed.overtime)     document.getElementById('sal-overtime').value=parsed.overtime;
-    if(parsed.commute)      document.getElementById('sal-commute').value=parsed.commute;
-    if(parsed.area)         document.getElementById('sal-area').value=parsed.area;
-    if(parsed.travel)       document.getElementById('sal-travel').value=parsed.travel;
-    if(parsed.net)          document.getElementById('sal-net').value=parsed.net;
-    if(parsed.health)   document.getElementById('sal-health').value=parsed.health;
-    if(parsed.pension)  document.getElementById('sal-pension').value=parsed.pension;
-    if(parsed.employ)   document.getElementById('sal-employ').value=parsed.employ;
-    if(parsed.care)     document.getElementById('sal-care').value=parsed.care;
-    if(parsed.incomeTax)      document.getElementById('sal-income-tax').value=parsed.incomeTax;
-    if(parsed.residentTax)    document.getElementById('sal-resident-tax').value=parsed.residentTax;
-    if(parsed.membership)     document.getElementById('sal-membership').value=parsed.membership;
-    if(parsed.otherDeduct)    document.getElementById('sal-other-deduct').value=parsed.otherDeduct;
-    if(parsed.bonusGross)     document.getElementById('sal-bonus-gross').value=parsed.bonusGross;
-    if(parsed.bonusNet)       document.getElementById('sal-bonus-net').value=parsed.bonusNet;
+    // OCR結果を動的フィールドにマッピング
+    const ocrMap={
+      '基本給':parsed.base,'住宅手当':parsed.housing,'残業代':parsed.overtime,
+      '通勤手当':parsed.commute,'地域手当':parsed.area,'出張手当':parsed.travel,
+      '健康保険':parsed.health,'厚生年金':parsed.pension,'雇用保険':parsed.employ,
+      '介護保険':parsed.care,'所得税':parsed.incomeTax,'住民税':parsed.residentTax,
+      '会費・積立':parsed.membership,'その他':parsed.otherDeduct
+    };
+    salItems.forEach(s=>{
+      const val=ocrMap[s.name];
+      if(val){const el=document.getElementById('sif_'+s.id);if(el)el.value=val;}
+    });
+    const netEl=document.getElementById('sal-net');
+    const bgEl=document.getElementById('sal-bonus-gross');
+    const bnEl=document.getElementById('sal-bonus-net');
+    if(parsed.net&&netEl)       netEl.value=parsed.net;
+    if(parsed.bonusGross&&bgEl) bgEl.value=parsed.bonusGross;
+    if(parsed.bonusNet&&bnEl)   bnEl.value=parsed.bonusNet;
     calcSalary();
     status.textContent='✅ 読み取り完了！内容を確認して保存してください';
     status.style.color='#34c759';
@@ -2216,7 +2603,7 @@ async function scanSalaryPhoto(e){
 
 // ===== BACKUP =====
 function exportData(){
-  const blob=new Blob([JSON.stringify({records,budgets,fixed,master,bulkCats,salaries},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({records,budgets,fixed,master,bulkCats,salaries,incomes},null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='家計簿_'+fmtDate(today).replace(/-/g,'')+'.json';a.click();
 }
@@ -2232,7 +2619,8 @@ function importData(e){
       if(data.master)    master=data.master;
       if(data.bulkCats)  bulkCats=data.bulkCats;
       if(data.salaries)  salaries=data.salaries;
-      sv('kk_records',records);sv('kk_budgets',budgets);sv('kk_fixed',fixed);sv('kk_master',master);sv('kk_bulkCats',bulkCats);sv('kk_salaries',salaries);
+      if(data.incomes)   incomes=data.incomes;
+      sv('kk_records',records);sv('kk_budgets',budgets);sv('kk_fixed',fixed);sv('kk_master',master);sv('kk_bulkCats',bulkCats);sv('kk_salaries',salaries);sv('kk_incomes',incomes);
       selBulkId=bulkCats[0]?.id||null;
       applyMaster();renderCal();renderFixedLists();renderBulkCatList();renderBulkCatBtns();toast('復元しました ✓');
     }catch(err){toast('ファイルが無効です');}
