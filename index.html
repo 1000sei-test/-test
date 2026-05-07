@@ -533,7 +533,7 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
     <div class="modal-row" style="background:#f5f8f5;border-radius:8px;padding:8px 10px;margin-bottom:2px">
       <label style="color:#6a9e7a">引き去り</label>
       <select id="rec-discount-type" style="border:none;background:none;font-family:inherit;font-size:14px;color:#6a9e7a;outline:none;flex:1"></select>
-      <input type="number" id="rec-discount" placeholder="0" min="0" oninput="calcRecRealAmt()" style="width:80px;border:none;background:none;font-family:inherit;font-size:15px;color:#6a9e7a;outline:none;text-align:right">
+      <input type="number" id="rec-discount" placeholder="なし" min="0" oninput="calcRecRealAmt();checkRecSaveBtn()" style="width:80px;border:none;background:none;font-family:inherit;font-size:15px;color:#6a9e7a;outline:none;text-align:right">
       <button onclick="openCalc('rec-discount',calcRecRealAmt)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button>
     </div>
     <div id="rec-real-row" style="display:none;text-align:right;padding:4px 10px 6px;font-size:13px;font-weight:700;color:#5b7e6e" id="rec-real-amt-disp"></div>
@@ -1337,8 +1337,10 @@ function delRec(i){
 function checkRecSaveBtn(){
   const title=document.getElementById('rec-title').value.trim();
   const amt=parseInt(document.getElementById('rec-amt').value)||0;
+  // タイトルと金額が有効なら青にする（割引変更も含む）
   const ok=!!(title&&amt>0);
   const btn=document.getElementById('rec-save-btn');
+  if(!btn)return;
   btn.disabled=!ok;
   btn.style.background=ok?'#007aff':'#c7c7cc';
 }
@@ -1353,15 +1355,15 @@ function openRecEdit(i){
   document.getElementById('rec-date').value=r.date;
   document.getElementById('rec-title').value=r.title;
   document.getElementById('rec-amt').value=r.originalAmount||r.amount;
-  document.getElementById('rec-discount').value=r.discount||0;
+  document.getElementById('rec-discount').value=r.discount||'';
   document.getElementById('rec-genre').value=r.genre;
   document.getElementById('rec-pay').value=r.payment;
   document.getElementById('rec-memo').value=r.memo||'';
   calcRecRealAmt();
-  // 保存ボタンをグレーにリセット（編集前）
+  // 既存データがあれば最初から保存ボタンを青に（割引だけ変えるケースに対応）
   const btn=document.getElementById('rec-save-btn');
-  btn.disabled=true;
-  btn.style.background='#c7c7cc';
+  btn.disabled=false;
+  btn.style.background='#007aff';
   document.getElementById('rec-modal').classList.add('show');
 }
 function saveRecEdit(){
