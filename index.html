@@ -529,7 +529,14 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
     <input type="hidden" id="rec-modal-idx">
     <div class="modal-row"><label>日付</label><input type="date" id="rec-date" oninput="checkRecSaveBtn()"></div>
     <div class="modal-row"><label>タイトル</label><input type="text" id="rec-title" placeholder="例: ランチ" oninput="checkRecSaveBtn()"></div>
-    <div class="modal-row"><label>金額</label><input type="number" id="rec-amt" placeholder="0" min="0" oninput="checkRecSaveBtn()"><button onclick="openCalc('rec-amt',checkRecSaveBtn)" style="border:none;background:none;font-size:18px;cursor:pointer;padding:0 0 0 6px;color:#a89880">🧮</button><span class="unit">円</span></div>
+    <div class="modal-row"><label>金額</label><input type="number" id="rec-amt" placeholder="0" min="0" oninput="calcRecRealAmt();checkRecSaveBtn()"><button onclick="openCalc('rec-amt',()=>{calcRecRealAmt();checkRecSaveBtn();})" style="border:none;background:none;font-size:18px;cursor:pointer;padding:0 0 0 6px;color:#a89880">🧮</button><span class="unit">円</span></div>
+    <div class="modal-row" style="background:#f5f8f5;border-radius:8px;padding:8px 10px;margin-bottom:2px">
+      <label style="color:#6a9e7a">引き去り</label>
+      <select id="rec-discount-type" style="border:none;background:none;font-family:inherit;font-size:14px;color:#6a9e7a;outline:none;flex:1"></select>
+      <input type="number" id="rec-discount" placeholder="0" min="0" oninput="calcRecRealAmt()" style="width:80px;border:none;background:none;font-family:inherit;font-size:15px;color:#6a9e7a;outline:none;text-align:right">
+      <button onclick="openCalc('rec-discount',calcRecRealAmt)" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button>
+    </div>
+    <div id="rec-real-row" style="display:none;text-align:right;padding:4px 10px 6px;font-size:13px;font-weight:700;color:#5b7e6e" id="rec-real-amt-disp"></div>
     <div class="modal-row"><label>ジャンル</label><select id="rec-genre" onchange="checkRecSaveBtn()"></select></div>
     <div class="modal-row"><label>支払い</label><select id="rec-pay" onchange="checkRecSaveBtn()"></select></div>
     <div class="modal-row"><label>メモ</label><input type="text" id="rec-memo" placeholder="任意"></div>
@@ -683,7 +690,17 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
     <div class="irow"><div class="ilbl">タイトル</div><input class="ictrl" type="text" id="i-title" placeholder="例: ランチ" oninput="checkSaveBtn()"></div>
     <div class="irow"><div class="ilbl">ジャンル</div><select class="ictrl" id="i-genre"></select></div>
     <div class="irow"><div class="ilbl">支払い</div><select class="ictrl" id="i-pay"></select></div>
-    <div class="irow"><div class="ilbl">金額</div><input class="ictrl" type="number" id="i-amt" placeholder="0" min="0" oninput="checkSaveBtn()"><button onclick="openCalc('i-amt')" style="border:none;background:none;font-size:18px;cursor:pointer;padding:0 0 0 6px;color:#a89880">🧮</button></div>
+    <div class="irow"><div class="ilbl">金額</div><input class="ictrl" type="number" id="i-amt" placeholder="0" min="0" oninput="calcRealAmt();checkSaveBtn()"><button onclick="openCalc('i-amt',()=>{calcRealAmt();checkSaveBtn();})" style="border:none;background:none;font-size:18px;cursor:pointer;padding:0 0 0 6px;color:#a89880">🧮</button></div>
+    <div class="irow" style="background:#f5f8f5">
+      <div class="ilbl" style="color:#6a9e7a;font-size:13px">引き去り</div>
+      <select class="ictrl" id="i-discount-type" style="color:#6a9e7a;max-width:100px" onchange="calcRealAmt()"></select>
+      <input class="ictrl" type="number" id="i-discount" placeholder="0" min="0" oninput="calcRealAmt();checkSaveBtn()" style="color:#6a9e7a;max-width:90px">
+      <button onclick="openCalc('i-discount',()=>{calcRealAmt();checkSaveBtn();})" style="border:none;background:none;font-size:16px;cursor:pointer;padding:0 0 0 4px;color:#a89880">🧮</button>
+    </div>
+    <div class="irow" id="i-real-row" style="background:#f0f7f4;display:none">
+      <div class="ilbl" style="color:#5b7e6e;font-weight:700;font-size:13px">実質支出</div>
+      <div class="ictrl" id="i-real-amt" style="color:#5b7e6e;font-weight:700;font-size:16px;text-align:right">¥0</div>
+    </div>
     <div class="irow"><div class="ilbl">メモ</div><input class="ictrl" type="text" id="i-memo" placeholder="任意"></div>
     <div class="irow" style="background:#fff8f0">
       <div class="ilbl" style="color:#ff9500;font-size:13px">⚡ 特別支出</div>
@@ -1021,6 +1038,18 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
     </div>
   </div>
 
+  <div class="sst">↩️ 引き去り種別</div>
+  <div class="scard">
+    <div class="fi-list" id="dt-list"></div>
+    <div class="fi-form">
+      <div class="fi-form-row">
+        <label>名前</label>
+        <input type="text" id="dt-name" placeholder="例: 割り勘" oninput="checkDtBtn()">
+        <button class="fi-add-btn" id="dt-add-btn" onclick="addDt()" disabled style="width:auto;padding:8px 14px;margin:0;flex-shrink:0;background:#d4cfc8">追加</button>
+      </div>
+    </div>
+  </div>
+
   <div class="sst">🏷️ ジャンル</div>
   <div class="scard">
     <div class="fi-list" id="genre-list"></div>
@@ -1152,6 +1181,17 @@ let salY, salM;
 let incomes = JSON.parse(localStorage.getItem('kk_incomes') || '[]');
 let incY, incM;
 
+let deductTypes=JSON.parse(localStorage.getItem('kk_deduct_types')||JSON.stringify(['割り勘','支給','ポイント','クーポン','値引き']));
+
+// discountTypes: [{id, name}]
+let discountTypes = JSON.parse(localStorage.getItem('kk_discount_types') || JSON.stringify([
+  {id:'dt1',name:'ポイント'},
+  {id:'dt2',name:'クーポン'},
+  {id:'dt3',name:'支給'},
+  {id:'dt4',name:'割り勘'},
+  {id:'dt5',name:'その他'}
+]));
+
 let calY,calM,anaY,anaM,annY,bmY,bmM;
 let salSeg='m', salAnnY, incSeg='m', incAnnY;
 let bmSel=new Set(),selDay=null,anaSeg='m',ftab='m';
@@ -1226,7 +1266,7 @@ function showPage(p){
   if(p==='ana')      renderAna();
   if(p==='salary')   renderSalaryPage();
   if(p==='income')   renderIncomePage();
-  if(p==='settings'){renderFixedLists();renderPayList();renderGenreList();renderSiLists();renderBulkCatList();renderBulkCatBtns();renderBmCal();applyMaster();}
+  if(p==='settings'){renderFixedLists();renderPayList();renderGenreList();renderDiscountTypeList();renderSiLists();renderBulkCatList();renderBulkCatBtns();renderBmCal();applyMaster();}
 }
 
 // ===== HEADER =====
@@ -1278,7 +1318,7 @@ function showDP(ds,d){
     l.innerHTML=rr.map(r=>`<div class="ri">
       <div class="ri-ic" style="background:${gc(r.genre)}20">${ge(r.genre)}</div>
       <div class="ri-info"><div class="ri-name">${r.title}</div><div class="ri-sub">${r.genre}・${r.payment}${r.memo?' ・ '+r.memo:''}</div></div>
-      <div class="ri-amt ${r.type}">${r.type==='out'?'-':'+'} ¥${r.amount.toLocaleString()}</div>
+      <div class="ri-amt ${r.type}">${r.type==='out'?'-':'+'} ¥${r.amount.toLocaleString()}${r.discount>0?`<span style="font-size:10px;color:#6a9e7a;margin-left:3px">(-¥${r.discount.toLocaleString()})</span>`:''}</div>
       <button class="ri-edit" onclick="openRecEdit(${records.indexOf(r)})">編集</button>
       <button class="ri-del" onclick="delRec(${records.indexOf(r)})">削除</button>
     </div>`).join('');
@@ -1312,10 +1352,12 @@ function openRecEdit(i){
   document.getElementById('rec-modal-idx').value=i;
   document.getElementById('rec-date').value=r.date;
   document.getElementById('rec-title').value=r.title;
-  document.getElementById('rec-amt').value=r.amount;
+  document.getElementById('rec-amt').value=r.originalAmount||r.amount;
+  document.getElementById('rec-discount').value=r.discount||0;
   document.getElementById('rec-genre').value=r.genre;
   document.getElementById('rec-pay').value=r.payment;
   document.getElementById('rec-memo').value=r.memo||'';
+  calcRecRealAmt();
   // 保存ボタンをグレーにリセット（編集前）
   const btn=document.getElementById('rec-save-btn');
   btn.disabled=true;
@@ -1326,12 +1368,14 @@ function saveRecEdit(){
   const i=parseInt(document.getElementById('rec-modal-idx').value);
   const date=document.getElementById('rec-date').value;
   const title=document.getElementById('rec-title').value.trim();
-  const amt=parseInt(document.getElementById('rec-amt').value)||0;
+  const amount=parseInt(document.getElementById('rec-amt').value)||0;
+  const discount=parseInt(document.getElementById('rec-discount').value)||0;
+  const realAmount=Math.max(amount-discount,0);
   const genre=document.getElementById('rec-genre').value;
   const payment=document.getElementById('rec-pay').value;
   const memo=document.getElementById('rec-memo').value.trim();
-  if(!date||!title||!amt){toast('日付・タイトル・金額は必須です');return;}
-  records[i]={...records[i],date,title,amount:amt,genre,payment,memo,type:'out'};
+  if(!date||!title||!amount){toast('日付・タイトル・金額は必須です');return;}
+  records[i]={...records[i],date,title,amount:realAmount,originalAmount:amount,discount,genre,payment,memo,type:'out'};
   sv('kk_records',records);
   closeRecModalDirect();
   renderCal();
@@ -1352,6 +1396,8 @@ function applyMaster(){
   const gs=master.genres,ps=master.payments;
   document.getElementById('i-genre').innerHTML=gs.map(g=>`<option>${g}</option>`).join('');
   document.getElementById('i-pay').innerHTML=ps.map(p=>`<option>${p}</option>`).join('');
+  // 割引種別
+  renderDiscountSelects();
   ['fim-pay','fiy-pay','modal-pay','bc-pay'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.innerHTML=ps.map(p=>`<option>${p}</option>`).join('');
@@ -1361,6 +1407,7 @@ function applyMaster(){
     if(el) el.innerHTML=gs.map(g=>`<option>${g}</option>`).join('');
   });
   // master-btn は廃止済み
+  updateDeductTypeSelects();
 }
 
 function setIncSeg(s){
@@ -1571,6 +1618,107 @@ function calcApply(){
   if(calcCallback) calcCallback();
   closeCalc();
 }
+// ===== DISCOUNT TYPES =====
+function renderDiscountSelects(){
+  const opts=discountTypes.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+  ['i-discount-type','rec-discount-type'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML=opts;
+  });
+}
+
+function renderDiscountTypeList(){
+  const el=document.getElementById('dt-list');
+  if(!el) return;
+  if(!discountTypes.length){el.innerHTML='<div class="fi-empty">種別が未登録です</div>';return;}
+  el.innerHTML=discountTypes.map((d,i)=>`
+    <div class="fi-item">
+      <div style="display:flex;flex-direction:column;gap:2px;margin-right:6px">
+        <button onclick="moveDt(${i},-1)" style="border:none;background:none;font-size:13px;cursor:pointer;color:${i===0?'#ddd':'#a89880'};padding:0;line-height:1" ${i===0?'disabled':''}>▲</button>
+        <button onclick="moveDt(${i},1)"  style="border:none;background:none;font-size:13px;cursor:pointer;color:${i===discountTypes.length-1?'#ddd':'#a89880'};padding:0;line-height:1" ${i===discountTypes.length-1?'disabled':''}>▼</button>
+      </div>
+      <div class="fi-left"><div class="fi-name">${d.name}</div></div>
+      <button class="fi-edit" onclick="editDt(${i})">編集</button>
+      <button class="fi-del" onclick="delDt(${i})">✕</button>
+    </div>`).join('');
+}
+
+function checkDtBtn(){
+  const ok=!!document.getElementById('dt-name').value.trim();
+  const btn=document.getElementById('dt-add-btn');
+  btn.disabled=!ok;
+  btn.style.background=ok?'var(--accent)':'#d4cfc8';
+}
+
+function addDt(){
+  const name=document.getElementById('dt-name').value.trim();
+  if(!name){toast('名前を入力してください');return;}
+  discountTypes.push({id:uid(),name});
+  sv('kk_discount_types',discountTypes);
+  document.getElementById('dt-name').value='';
+  checkDtBtn();
+  renderDiscountTypeList();
+  renderDiscountSelects();
+  toast('追加しました ✓');
+}
+
+function delDt(i){
+  if(!confirm('削除しますか？'))return;
+  discountTypes.splice(i,1);
+  sv('kk_discount_types',discountTypes);
+  renderDiscountTypeList();
+  renderDiscountSelects();
+  toast('削除しました');
+}
+
+function editDt(i){
+  const name=prompt('種別名を変更',discountTypes[i].name);
+  if(!name||!name.trim())return;
+  discountTypes[i].name=name.trim();
+  sv('kk_discount_types',discountTypes);
+  renderDiscountTypeList();
+  renderDiscountSelects();
+  toast('更新しました ✓');
+}
+
+function moveDt(i,dir){
+  const j=i+dir;
+  if(j<0||j>=discountTypes.length)return;
+  [discountTypes[i],discountTypes[j]]=[discountTypes[j],discountTypes[i]];
+  sv('kk_discount_types',discountTypes);
+  renderDiscountTypeList();
+  renderDiscountSelects();
+}
+
+function calcRealAmt(){
+  const amt=parseInt(document.getElementById('i-amt').value)||0;
+  const disc=parseInt(document.getElementById('i-discount').value)||0;
+  const real=Math.max(amt-disc,0);
+  const row=document.getElementById('i-real-row');
+  const disp=document.getElementById('i-real-amt');
+  if(disc>0&&amt>0){
+    row.style.display='flex';
+    disp.textContent='¥'+real.toLocaleString()+'（¥'+amt.toLocaleString()+'−割引¥'+disc.toLocaleString()+'）';
+  } else {
+    row.style.display='none';
+  }
+}
+
+function calcRecRealAmt(){
+  const amt=parseInt(document.getElementById('rec-amt').value)||0;
+  const disc=parseInt(document.getElementById('rec-discount').value)||0;
+  const real=Math.max(amt-disc,0);
+  const row=document.getElementById('rec-real-row');
+  if(row){
+    if(disc>0&&amt>0){
+      row.style.display='block';
+      row.textContent='実質 ¥'+real.toLocaleString()+'（¥'+amt.toLocaleString()+'−割引¥'+disc.toLocaleString()+'）';
+    } else {
+      row.style.display='none';
+    }
+  }
+}
+
 let isSpecial=false;
 function toggleSpecial(){
   isSpecial=!isSpecial;
@@ -1639,13 +1787,22 @@ function saveRecord(){
   const genre=document.getElementById('i-genre').value;
   const payment=document.getElementById('i-pay').value;
   const amount=parseInt(document.getElementById('i-amt').value)||0;
+  const discount=parseInt(document.getElementById('i-discount').value)||0;
+  const realAmount=Math.max(amount-discount,0);
   const memo=document.getElementById('i-memo').value.trim();
   if(!date||!title||!amount){toast('日付・タイトル・金額は必須です');return;}
-  records.push({date,title,genre,payment,amount,memo,type:'out',special:isSpecial});
+  records.push({
+    date,title,genre,payment,
+    amount:realAmount,       // 実質支出を記録
+    originalAmount:amount,   // 元の金額も保持
+    discount,
+    memo,type:'out',special:isSpecial
+  });
   sv('kk_records',records);
   document.getElementById('i-title').value='';
   document.getElementById('i-amt').value='';
-  document.getElementById('i-memo').value='';
+  document.getElementById('i-discount').value='';
+  document.getElementById('i-real-row').style.display='none';
   document.getElementById('save-btn').disabled=true;
   document.getElementById('save-btn').style.background='#c7c7cc';
   resetSpecial();
@@ -2076,7 +2233,74 @@ function moveItem(type,i,dir){
   else renderGenreList();
 }
 
-// 支払い方法リスト
+// ===== DEDUCT TYPES =====
+function renderDeductTypeList(){
+  const el=document.getElementById('deduct-type-list');
+  if(!el)return;
+  if(!deductTypes.length){el.innerHTML='<div class="fi-empty">引き去り種類が未登録です</div>';return;}
+  el.innerHTML=deductTypes.map((d,i)=>`
+    <div class="fi-item">
+      <div style="display:flex;flex-direction:column;gap:2px;margin-right:6px">
+        <button onclick="moveDeductType(${i},-1)" style="border:none;background:none;font-size:13px;cursor:pointer;color:${i===0?'#ddd':'#a89880'};padding:0;line-height:1" ${i===0?'disabled':''}>▲</button>
+        <button onclick="moveDeductType(${i},1)" style="border:none;background:none;font-size:13px;cursor:pointer;color:${i===deductTypes.length-1?'#ddd':'#a89880'};padding:0;line-height:1" ${i===deductTypes.length-1?'disabled':''}>▼</button>
+      </div>
+      <div class="fi-left"><div class="fi-name">${d}</div></div>
+      <button class="fi-edit" onclick="editDeductType(${i})">編集</button>
+      <button class="fi-del" onclick="delDeductType(${i})">✕</button>
+    </div>`).join('');
+}
+function checkDeductTypeBtn(){
+  const inp=document.getElementById('deduct-type-new');
+  const btn=document.getElementById('deduct-type-add-btn');
+  if(!inp||!btn)return;
+  const ok=!!inp.value.trim();
+  btn.disabled=!ok; btn.style.background=ok?'var(--accent)':'#d4cfc8';
+}
+function addDeductType(){
+  const inp=document.getElementById('deduct-type-new');
+  if(!inp)return;
+  const name=inp.value.trim();
+  if(!name)return;
+  deductTypes.push(name);
+  sv('kk_deduct_types',deductTypes);
+  inp.value='';
+  checkDeductTypeBtn();
+  renderDeductTypeList();
+  updateDeductTypeSelects();
+  toast('追加しました ✓');
+}
+function delDeductType(i){
+  if(!confirm('削除しますか？'))return;
+  deductTypes.splice(i,1);
+  sv('kk_deduct_types',deductTypes);
+  renderDeductTypeList();
+  updateDeductTypeSelects();
+  toast('削除しました');
+}
+function editDeductType(i){
+  const name=prompt('名前を変更',deductTypes[i]);
+  if(!name||!name.trim())return;
+  deductTypes[i]=name.trim();
+  sv('kk_deduct_types',deductTypes);
+  renderDeductTypeList();
+  updateDeductTypeSelects();
+  toast('更新しました ✓');
+}
+function moveDeductType(i,dir){
+  const j=i+dir;
+  if(j<0||j>=deductTypes.length)return;
+  [deductTypes[i],deductTypes[j]]=[deductTypes[j],deductTypes[i]];
+  sv('kk_deduct_types',deductTypes);
+  renderDeductTypeList();
+  updateDeductTypeSelects();
+}
+function updateDeductTypeSelects(){
+  const opts='<option value="">なし</option>'+deductTypes.map(d=>`<option>${d}</option>`).join('');
+  ['i-discount-type','rec-discount-type'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML=opts;
+  });
+}
 function renderPayList(){
   const el=document.getElementById('pay-list');
   if(!el)return;
