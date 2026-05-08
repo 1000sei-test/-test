@@ -626,15 +626,6 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
       <div class="gcard-t">💳 支払い方法別支出</div>
       <div id="pay-bd-m"></div>
     </div>
-    <div class="gcard" id="pay-calc-m-card">
-      <div class="gcard-t">🧮 支払い方法を選んで合計</div>
-      <div id="pay-calc-m-checks" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
-      <div style="background:#f2f2f7;border-radius:10px;padding:12px;text-align:center">
-        <div style="font-size:12px;color:#8e8e93;margin-bottom:4px">選択した支払い方法の合計</div>
-        <div id="pay-calc-m-total" style="font-size:26px;font-weight:700;color:#ff3b30">¥0</div>
-        <div id="pay-calc-m-detail" style="font-size:11px;color:#8e8e93;margin-top:4px"></div>
-      </div>
-    </div>
   </div>
   <div id="ana-a" style="display:none">
     <div class="anav">
@@ -666,15 +657,6 @@ body{font-family:‘Noto Sans JP’,sans-serif;background:var(–bg);color:var(�
     <div class="gcard">
       <div class="gcard-t">💳 支払い方法別支出（年間）</div>
       <div id="pay-bd-a"></div>
-    </div>
-    <div class="gcard">
-      <div class="gcard-t">🧮 支払い方法を選んで合計（年間）</div>
-      <div id="pay-calc-a-checks" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
-      <div style="background:#f2f2f7;border-radius:10px;padding:12px;text-align:center">
-        <div style="font-size:12px;color:#8e8e93;margin-bottom:4px">選択した支払い方法の年間合計</div>
-        <div id="pay-calc-a-total" style="font-size:26px;font-weight:700;color:#ff3b30">¥0</div>
-        <div id="pay-calc-a-detail" style="font-size:11px;color:#8e8e93;margin-top:4px"></div>
-      </div>
     </div>
   </div>
 </div>
@@ -1253,6 +1235,7 @@ function init(){
   renderBulkCatList();
   renderBulkCatBtns();
   renderBmCal();
+  renderDiscountSelects();
 }
 
 // ===== PAGES =====
@@ -1266,7 +1249,8 @@ function showPage(p){
   if(p==='ana')      renderAna();
   if(p==='salary')   renderSalaryPage();
   if(p==='income')   renderIncomePage();
-  if(p==='settings'){renderFixedLists();renderPayList();renderGenreList();renderDiscountTypeList();renderSiLists();renderBulkCatList();renderBulkCatBtns();renderBmCal();applyMaster();}
+  if(p==='input')    renderDiscountSelects();
+  if(p==='settings'){renderFixedLists();renderPayList();renderGenreList();renderDiscountTypeList();renderDiscountSelects();renderSiLists();renderBulkCatList();renderBulkCatBtns();renderBmCal();applyMaster();}
 }
 
 // ===== HEADER =====
@@ -1319,7 +1303,7 @@ function showDP(ds,d){
       <div class="ri-ic" style="background:${gc(r.genre)}20">${ge(r.genre)}</div>
       <div class="ri-info">
         <div class="ri-name">${r.title}</div>
-        <div class="ri-sub">${r.genre}・${r.payment}${r.memo?' ・ '+r.memo:''}</div>
+        <div class="ri-sub">${r.genre}・${r.payment}${r.memo?' ・ '+r.memo:''}${r.discountType?(()=>{const dt=discountTypes.find(d=>d.id===r.discountType);return dt?' ・ 引去:'+dt.name:'';})():''}</div>
         ${r.discount>0?`<div style="font-size:11px;color:#6a9e7a;margin-top:2px">${r.discountType?`[${discountTypes.find(d=>d.id===r.discountType)?.name||r.discountType}] `:''}¥${(r.originalAmount||r.amount+r.discount).toLocaleString()} − 引き去り¥${r.discount.toLocaleString()} = ¥${r.amount.toLocaleString()}</div>`:''}
       </div>
       <div class="ri-amt ${r.type}">${r.type==='out'?'-':'+'} ¥${r.amount.toLocaleString()}</div>
@@ -1629,10 +1613,13 @@ function calcApply(){
 }
 // ===== DISCOUNT TYPES =====
 function renderDiscountSelects(){
-  const opts=discountTypes.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+  const opts='<option value="">種別なし</option>'+discountTypes.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
   ['i-discount-type','rec-discount-type'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el) el.innerHTML=opts;
+    if(!el) return;
+    const prev=el.value;
+    el.innerHTML=opts;
+    if(prev) el.value=prev;
   });
 }
 
@@ -1917,7 +1904,6 @@ function renderM(){
 
   // 支払い方法別
   renderPayBreakdown(rr.filter(r=>r.type==='out'), 'pay-bd-m');
-  renderPayCalc(rr.filter(r=>r.type==='out'), 'pay-calc-m-checks', 'pay-calc-m-total', 'pay-calc-m-detail', payCalcSelM);
 }
 function saveBudget(){
   const key=ym(anaY,anaM),val=parseInt(document.getElementById('b-inp').value)||0;
@@ -1962,7 +1948,6 @@ function renderA(){
   // 支払い方法別（年間）
   const allAnnRecs=records.filter(r=>r.date.startsWith(annY+'')&&r.type==='out');
   renderPayBreakdown(allAnnRecs,'pay-bd-a');
-  renderPayCalc(allAnnRecs, 'pay-calc-a-checks', 'pay-calc-a-total', 'pay-calc-a-detail', payCalcSelA);
 }
 
 function handleGenreClick(rowEl){
