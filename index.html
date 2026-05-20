@@ -1035,7 +1035,7 @@ function showDP(ds,d){
         <div class="ri-info">
           <div class="ri-name">${r.title}</div>
           <div class="ri-sub">${r.genre}・${r.payment}${r.memo?' ・ '+r.memo:''}</div>
-          ${(r.allowance>0||r.discount>0)?`<div style="font-size:11px;color:#6a9e7a;margin-top:2px">${r.allowance>0?`💼${atName} ＋¥${r.allowance.toLocaleString()} `:''}${r.discount>0?`↩${dtName} −¥${r.discount.toLocaleString()} `:''}= ¥${r.amount.toLocaleString()}</div>`:''}
+          ${(r.allowance>0||r.discount>0)?`<div style="font-size:11px;color:#6a9e7a;margin-top:2px">${r.allowance>0?`💼${atName} −¥${r.allowance.toLocaleString()} `:''}${r.discount>0?`↩${dtName} −¥${r.discount.toLocaleString()} `:''}= ¥${r.amount.toLocaleString()}</div>`:''}
         </div>
         <div class="ri-amt ${r.type}">${r.type==='out'?'-':'+'} ¥${r.amount.toLocaleString()}</div>
         <button class="ri-edit" onclick="openRecEdit(${records.indexOf(r)})">編集</button>
@@ -1101,7 +1101,7 @@ function saveRecEdit(){
   const allowanceType=document.getElementById('rec-allowance-type').value||'';
   const discount=parseInt(document.getElementById('rec-discount').value)||0;
   const discountType=document.getElementById('rec-discount-type').value||'';
-  const realAmount=Math.max(baseAmount+allowance-discount,0);
+  const realAmount=Math.max(baseAmount-allowance-discount,0);
   const genre=document.getElementById('rec-genre').value;
   const payment=document.getElementById('rec-pay').value;
   const memo=document.getElementById('rec-memo').value.trim();
@@ -1293,13 +1293,13 @@ function calcRealAmt(){
   const base=parseInt(document.getElementById('i-amt').value)||0;
   const allowance=parseInt(document.getElementById('i-allowance').value)||0;
   const disc=parseInt(document.getElementById('i-discount').value)||0;
-  const real=Math.max(base+allowance-disc,0);
+  const real=Math.max(base-allowance-disc,0);
   const row=document.getElementById('i-real-row');
   const disp=document.getElementById('i-real-amt');
   if((allowance>0||disc>0)&&base>0){
     row.style.display='flex';
     let parts=`¥${base.toLocaleString()}`;
-    if(allowance>0) parts+=` ＋ 手当て¥${allowance.toLocaleString()}`;
+    if(allowance>0) parts+=` − 手当て¥${allowance.toLocaleString()}`;
     if(disc>0) parts+=` − 差し引き¥${disc.toLocaleString()}`;
     disp.textContent=`¥${real.toLocaleString()}（${parts}）`;
   } else {
@@ -1311,13 +1311,13 @@ function calcRecRealAmt(){
   const base=parseInt(document.getElementById('rec-amt').value)||0;
   const allowance=parseInt(document.getElementById('rec-allowance').value)||0;
   const disc=parseInt(document.getElementById('rec-discount').value)||0;
-  const real=Math.max(base+allowance-disc,0);
+  const real=Math.max(base-allowance-disc,0);
   const row=document.getElementById('rec-real-row');
   if(row){
     if((allowance>0||disc>0)&&base>0){
       row.style.display='block';
       let parts=`¥${base.toLocaleString()}`;
-      if(allowance>0) parts+=` ＋ 手当て¥${allowance.toLocaleString()}`;
+      if(allowance>0) parts+=` − 手当て¥${allowance.toLocaleString()}`;
       if(disc>0) parts+=` − 差し引き¥${disc.toLocaleString()}`;
       row.textContent=`実質 ¥${real.toLocaleString()}（${parts}）`;
     } else {
@@ -1408,7 +1408,7 @@ function saveRecord(){
   if(!date||!title||!baseAmount){toast('日付・タイトル・金額は必須です');return;}
   records.push({
     date,title,genre,payment,
-    amount:realAmount,
+    amount:Math.max(baseAmount-allowance-discount,0),
     originalAmount:baseAmount,
     allowance,allowanceType,
     discount,discountType,
