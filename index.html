@@ -1403,7 +1403,6 @@ function saveRecord(){
   const allowanceType=document.getElementById('i-allowance-type').value||'';
   const discount=parseInt(document.getElementById('i-discount').value)||0;
   const discountType=document.getElementById('i-discount-type').value||'';
-  const realAmount=Math.max(baseAmount+allowance-discount,0);
   const memo=document.getElementById('i-memo').value.trim();
   if(!date||!title||!baseAmount){toast('日付・タイトル・金額は必須です');return;}
   records.push({
@@ -2413,7 +2412,7 @@ async function scanSalaryPhoto(e){
     });
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
         max_tokens:1000,
@@ -2423,6 +2422,7 @@ async function scanSalaryPhoto(e){
         ]}]
       })
     });
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.error?.message||String(resp.status));}
     const data=await resp.json();
     const text=data.content.map(c=>c.text||'').join('');
     const clean=text.replace(/```json|```/g,'').trim();
