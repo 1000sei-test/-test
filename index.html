@@ -484,13 +484,13 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       </div>
       <button class="anav-btn" id="sal-next">▶</button>
     </div>
-    <!-- 写真読み取り -->
-    <div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;border:2px dashed var(--accent)">
-      <div style="font-size:14px;font-weight:700;margin-bottom:8px;color:var(--accent)">📷 給与明細を写真で読み取る</div>
-      <div style="font-size:12px;color:#8e8e93;margin-bottom:10px">明細の写真を選択するとAIが自動入力します</div>
-      <input type="file" id="sal-photo" accept="image/*" style="display:none" onchange="scanSalaryPhoto(event)">
-      <button onclick="document.getElementById('sal-photo').click()" style="width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">📷 写真を選択</button>
-      <div id="sal-scan-status" style="font-size:12px;color:#8e8e93;margin-top:8px;text-align:center;display:none"></div>
+    <!-- テキスト貼り付け振り分け -->
+    <div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;border:2px dashed #a0b8c8">
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;color:#4a70a8">📋 テキストを貼り付けて自動入力</div>
+      <div style="font-size:12px;color:#8e8e93;margin-bottom:8px">給与明細のテキストをコピーして貼り付けると各項目に自動で振り分けます</div>
+      <textarea id="sal-paste-area" placeholder="例：&#10;基本給 250,000&#10;住宅手当 20,000&#10;健康保険 12,345" style="width:100%;height:100px;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;background:var(--bg);outline:none;resize:none;color:var(--text)"></textarea>
+      <button onclick="parseSalaryText()" style="width:100%;margin-top:8px;padding:10px;background:#4a70a8;color:#fff;border:none;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">✨ 振り分ける</button>
+      <div id="sal-parse-status" style="font-size:12px;margin-top:6px;text-align:center;display:none"></div>
     </div>
     <!-- 動的フォーム -->
     <div id="sal-form-income" class="icard">
@@ -2397,46 +2397,101 @@ function calcApply(){
 }
 
 // ===== SALARY OCR =====
-async function scanSalaryPhoto(e){
-  const file=e.target.files[0];
-  if(!file)return;
-  const status=document.getElementById('sal-scan-status');
-  status.style.display='block';
-  status.textContent='📷 読み取り中...';
-  try{
-    const base64=await new Promise((res,rej)=>{
-      const r=new FileReader();
-      r.onload=()=>res(r.result.split(',')[1]);
-      r.onerror=()=>rej();
-      r.readAsDataURL(file);
-    });
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        messages:[{role:'user',content:[
-          {type:'image',source:{type:'base64',media_type:file.type,data:base64}},
-          {type:'text',text:`この給与明細の画像から以下の金額を読み取り、JSONのみで返してください。数値は半角数字のみ（カンマなし）。{"base":基本給,"housing":住宅手当,"overtime":残業代,"commute":通勤手当,"area":地域手当,"travel":出張手当,"net":手取り,"health":健康保険,"pension":厚生年金,"employ":雇用保険,"care":介護保険,"incomeTax":所得税,"residentTax":住民税,"membership":会費・積立,"otherDeduct":その他控除,"bonusGross":ボーナス額面,"bonusNet":ボーナス手取り}不明な項目は0にしてください。JSONのみ返してください。`}
-        ]}]
-      })
-    });
-    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.error?.message||String(resp.status));}
-    const data=await resp.json();
-    const text=data.content.map(c=>c.text||'').join('');
-    const clean=text.replace(/```json|```/g,'').trim();
-    const parsed=JSON.parse(clean);
-    const ocrMap={'基本給':parsed.base,'住宅手当':parsed.housing,'残業代':parsed.overtime,'通勤手当':parsed.commute,'地域手当':parsed.area,'出張手当':parsed.travel,'健康保険':parsed.health,'厚生年金':parsed.pension,'雇用保険':parsed.employ,'介護保険':parsed.care,'所得税':parsed.incomeTax,'住民税':parsed.residentTax,'会費・積立':parsed.membership,'その他':parsed.otherDeduct};
-    salItems.forEach(s=>{const val=ocrMap[s.name];if(val){const el=document.getElementById('sif_'+s.id);if(el)el.value=val;}});
-    calcSalary();
-    status.textContent='✅ 読み取り完了！内容を確認して保存してください';
-    status.style.color='#34c759';
-  }catch(err){
-    status.textContent='❌ 読み取りに失敗しました。手動で入力してください';
-    status.style.color='#ff3b30';
+// ===== SALARY TEXT PARSE =====
+function parseSalaryText(){
+  const text=document.getElementById('sal-paste-area').value.trim();
+  const status=document.getElementById('sal-parse-status');
+  if(!text){
+    status.style.display='block';
+    status.style.color='#ff9500';
+    status.textContent='⚠️ テキストを貼り付けてください';
+    return;
   }
-  e.target.value='';
+
+  function extractNum(str){
+    const s=str.replace(/[\uff0c\u3001,]/g,'').replace(/[\uff10-\uff19]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);});
+    const m=s.match(/^[0-9]+$/);
+    return m?parseInt(s):null;
+  }
+
+  function isNumLine(str){
+    const s=str.trim().replace(/[\uff0c,]/g,'').replace(/[\uff10-\uff19]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);});
+    return /^[0-9]+$/.test(s);
+  }
+
+  function parseNumLine(str){
+    const s=str.trim().replace(/[\uff0c,]/g,'').replace(/[\uff10-\uff19]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);});
+    return parseInt(s);
+  }
+
+  const lines=text.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length>0;});
+  let matched=0, unmatched=[];
+
+  function tryMatch(label, num){
+    let found=false;
+    salItems.forEach(function(s){
+      const el=document.getElementById('sif_'+s.id);
+      if(!el)return;
+      const keywords=s.name.replace(/[\u30fb\uff65]/g,'').split(/\s+/);
+      const labelNorm=label.replace(/[\u30fb\uff65\s]/g,'');
+      const isMatch=keywords.some(function(k){return k.length>=2&&labelNorm.includes(k);});
+      if(isMatch&&!found){
+        el.value=num;
+        found=true;
+        matched++;
+      }
+    });
+    if(!found&&label.length>0){
+      unmatched.push(label+' → ¥'+num.toLocaleString());
+    }
+  }
+
+  // パターン1: 「項目名\n金額」が交互に並ぶケース
+  // パターン2: 「項目名 金額」が同一行のケース
+  // 両方に対応
+  let i=0;
+  while(i<lines.length){
+    const line=lines[i];
+    if(isNumLine(line)){
+      // 数字行 → 直前の行がラベルのはず
+      // すでに前のループで処理済みなのでスキップ
+      i++;
+      continue;
+    }
+    // ラベル行の場合、次の行が数字かチェック
+    if(i+1<lines.length&&isNumLine(lines[i+1])){
+      // 項目名\n金額 パターン
+      const num=parseNumLine(lines[i+1]);
+      if(num>0) tryMatch(line, num);
+      i+=2;
+    } else {
+      // 同一行に数字が含まれるパターン
+      const s=line.replace(/[\uff0c,]/g,'').replace(/[\uff10-\uff19]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);});
+      const m=s.match(/[0-9]+/g);
+      if(m){
+        const num=parseInt(m[m.length-1]); // 末尾の数字を使う
+        if(num>0) tryMatch(line.replace(/[\s0-9,，\uff0c\uff10-\uff19]+$/,'').trim(), num);
+      }
+      i++;
+    }
+  }
+
+  calcSalary();
+
+  status.style.display='block';
+  if(matched===0){
+    status.style.color='#ff3b30';
+    status.textContent='❌ 振り分けられる項目が見つかりませんでした';
+  } else {
+    let msg='✅ '+matched+'項目を自動入力しました';
+    if(unmatched.length>0){
+      status.style.color='#ff9500';
+      msg+='　⚠️ 未振り分け: '+unmatched.join(' / ');
+    } else {
+      status.style.color='#34c759';
+    }
+    status.textContent=msg;
+  }
 }
 
 // ===== BACKUP =====
