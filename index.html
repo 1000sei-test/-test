@@ -2432,9 +2432,10 @@ function parseSalaryText(){
     salItems.forEach(function(s){
       const el=document.getElementById('sif_'+s.id);
       if(!el)return;
-      const keywords=s.name.replace(/[\u30fb\uff65]/g,'').split(/\s+/);
+      const nameNorm=s.name.replace(/[\u30fb\uff65\s]/g,'');
       const labelNorm=label.replace(/[\u30fb\uff65\s]/g,'');
-      const isMatch=keywords.some(function(k){return k.length>=2&&labelNorm.includes(k);});
+      const prefix=nameNorm.slice(0,3);
+      const isMatch=prefix.length>=2&&labelNorm.includes(prefix);
       if(isMatch&&!found){
         el.value=num;
         found=true;
