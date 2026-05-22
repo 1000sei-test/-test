@@ -372,11 +372,11 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       <div class="btrack"><div class="bfill" id="b-fill" style="width:0%"></div></div>
       <div class="bsub" id="b-sub">予算未設定</div>
       <div class="bset">
-        <input type="number" id="b-inp" placeholder="例: 30000" min="0" oninput="checkBudgetBtn()">
+        <input type="number" id="b-inp" placeholder="例: 30000" min="0" oninput="checkBudgetBtn()" style="min-width:0">
         <span class="unit">円</span>
         <button onclick="openCalc('b-inp',checkBudgetBtn)" style="border:1px solid var(--border);background:var(--bg);border-radius:8px;font-size:15px;cursor:pointer;padding:5px 8px;color:#a89880;flex-shrink:0;line-height:1">🧮</button>
-        <button class="bset-btn" id="budget-save-btn" onclick="saveBudget()" disabled style="background:#c7c7cc;cursor:default">保存</button>
       </div>
+      <button class="bset-btn" id="budget-save-btn" onclick="saveBudget()" disabled style="background:#c7c7cc;cursor:default;width:100%;margin-top:8px;padding:10px">保存する</button>
     </div>
     <div class="gcard">
       <div class="gcard-t">ジャンル別支出</div>
