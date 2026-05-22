@@ -350,22 +350,19 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     </div>
     <div class="scards">
       <div class="sc"><div class="sl">支出</div><div class="sv" style="color:var(--red)" id="ana-out">¥0</div></div>
-      <div class="sc"><div class="sl">収入</div><div class="sv" style="color:var(--green)" id="ana-in">¥0</div></div>
+      <div class="sc" style="background:#fff8f0;border:1px solid #f0d8b0"><div class="sl" style="color:var(--orange)">⚡ 特別支出</div><div class="sv" style="color:var(--orange)" id="ana-special">¥0</div></div>
       <div class="sc"><div class="sl">固定費</div><div class="sv" style="color:var(--purple)" id="ana-fix">¥0</div></div>
       <div class="sc"><div class="sl">変動費</div><div class="sv" style="color:var(--red)" id="ana-var">¥0</div></div>
       <div class="sc" style="grid-column:1/-1;background:#e8f5e9;border:1px solid #a5d6a7">
-        <div class="sl" style="color:#5a8a5a">💴 給与手取り＋副業収入</div>
-        <div class="sv" style="color:#2e7d32" id="ana-total-income">¥0</div>
-        <div style="font-size:11px;color:#5a8a5a;margin-top:2px" id="ana-total-income-detail"></div>
+        <div class="sl" style="color:#5a8a5a;font-size:13px;font-weight:700">💴 総収入（手取り＋副業＋手当て）</div>
+        <div class="sv" style="color:#2e7d32;font-size:26px" id="ana-grand-total">¥0</div>
+        <div style="margin-top:10px;padding-top:8px;border-top:1px solid #a5d6a7;display:flex;flex-wrap:wrap;gap:10px">
+          <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:10px;color:#5a8a5a">給与手取り</div><div style="font-size:14px;font-weight:700;color:#2e7d32" id="ana-sal-net">¥0</div></div>
+          <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:10px;color:#5a8a5a">副業・その他</div><div style="font-size:14px;font-weight:700;color:#2e7d32" id="ana-income-sub">¥0</div></div>
+          <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:10px;color:#4a70a8">💼 手当て</div><div style="font-size:14px;font-weight:700;color:#4a70a8" id="ana-allowance-sub">¥0</div></div>
+        </div>
       </div>
-      <div class="sc" style="grid-column:1/-1;background:#e8f0ff;border:1px solid #b0c8f0">
-        <div class="sl" style="color:var(--blue)">💼 手当て合計（立替・支給分）</div>
-        <div class="sv" style="color:var(--blue)" id="ana-allowance">¥0</div>
-      </div>
-      <div class="sc" style="grid-column:1/-1;background:#fff8f0;border:1px solid #f0d8b0">
-        <div class="sl" style="color:var(--orange)">⚡ 特別支出（予算外）</div>
-        <div class="sv" style="color:var(--orange)" id="ana-special">¥0</div>
-      </div>
+    </div>
     </div>
     <div class="bcard">
       <div class="btop"><div class="blbl">💰 お小遣い予算（固定費除く）</div><div class="bpct" id="b-pct">-</div></div>
@@ -1444,29 +1441,37 @@ function renderM(){
   const out=rr.filter(r=>r.type==='out').reduce((s,r)=>s+r.amount,0);
   const inc=rr.filter(r=>r.type==='in').reduce((s,r)=>s+r.amount,0);
   const fx =rr.filter(r=>r.type==='out'&&r.genre==='固定費').reduce((s,r)=>s+r.amount,0);
-  document.getElementById('ana-out').textContent='¥'+out.toLocaleString();
-  document.getElementById('ana-in').textContent='¥'+inc.toLocaleString();
-  document.getElementById('ana-fix').textContent='¥'+fx.toLocaleString();
-  document.getElementById('ana-var').textContent='¥'+(out-fx).toLocaleString();
+  document.getElementById('ana-out').textContent='\xa5'+out.toLocaleString();
+  document.getElementById('ana-fix').textContent='\xa5'+fx.toLocaleString();
+  document.getElementById('ana-var').textContent='\xa5'+(out-fx).toLocaleString();
   const spTotal=rr.filter(r=>r.type==='out'&&r.special).reduce((s,r)=>s+r.amount,0);
-  if(document.getElementById('ana-special')) document.getElementById('ana-special').textContent='¥'+spTotal.toLocaleString();
+  if(document.getElementById('ana-special')) document.getElementById('ana-special').textContent='\xa5'+spTotal.toLocaleString();
   // 手当て合計
   const allowTotal=rr.filter(r=>r.type==='out').reduce((s,r)=>s+(r.allowance||0),0);
-  if(document.getElementById('ana-allowance')) document.getElementById('ana-allowance').textContent='¥'+allowTotal.toLocaleString();
-  // 給与手取り＋副業収入
+  // 給与手取り・副業・控除
   const salKey=ym(anaY,anaM);
   const salData=salaries[salKey]||{};
   const salNet=(salData.net||0)+(salData.bonusNet||0)+(salData.otherDeduct||0);
+  const deductTotal=salItems.filter(s=>s.type==='ded').reduce((sum,s)=>sum+(salData.items?.[s.id]||0),0);
   const incomeTotal=incomes.filter(r=>r.date.startsWith(salKey)).reduce((s,r)=>s+r.amount,0);
-  const grandTotal=salNet+incomeTotal;
-  const tiEl=document.getElementById('ana-total-income');
-  const tdEl=document.getElementById('ana-total-income-detail');
-  if(tiEl) tiEl.textContent='¥'+grandTotal.toLocaleString();
-  if(tdEl){
+  // 総収入 = 手取り + 副業 + 手当て
+  const grandIncomeTotal=salNet+incomeTotal+allowTotal;
+  // 実質手取り = 手取り + 手当て
+  const realNet=salNet+allowTotal;
+  // 各要素更新
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('ana-sal-net','¥'+salNet.toLocaleString());
+  set('ana-deduct','¥'+deductTotal.toLocaleString());
+  set('ana-grand-total','¥'+grandIncomeTotal.toLocaleString());
+  set('ana-income-sub','¥'+incomeTotal.toLocaleString()+(incomeTotal===0?' (未入力)':''));
+  set('ana-allowance-sub','¥'+allowTotal.toLocaleString());
+  set('ana-real-net','¥'+realNet.toLocaleString());
+  const rnDEl=document.getElementById('ana-real-net-detail');
+  if(rnDEl){
     const parts=[];
-    if(salNet>0) parts.push('給与手取 ¥'+salNet.toLocaleString());
-    if(incomeTotal>0) parts.push('副業等 ¥'+incomeTotal.toLocaleString());
-    tdEl.textContent=parts.length>0?parts.join(' ＋ '):'給与・収入データを入力してください';
+    if(salNet>0) parts.push('手取 ¥'+salNet.toLocaleString());
+    if(allowTotal>0) parts.push('手当て ¥'+allowTotal.toLocaleString());
+    rnDEl.textContent=parts.length>0?parts.join(' + '):'';
   }
   const budget=budgets[key]||0;
   document.getElementById('b-inp').value=budget||'';
