@@ -342,7 +342,19 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
         <span style="font-size:12px;color:var(--muted)">円</span>
         <button onclick="openCalc('b-inp',checkBudgetBtn)" style="border:1px solid var(--border);background:var(--bg);border-radius:8px;font-size:15px;cursor:pointer;padding:5px 8px;color:#a89880;flex-shrink:0">🧮</button>
       </div>
-      <button class="bset-btn" id="budget-save-btn" onclick="saveBudget()" disabled style="background:#c7c7cc;cursor:default;width:100%;margin-top:8px;padding:10px">保存する</button>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;color:#ff9500;font-weight:700;margin-bottom:6px">⚡ 予算除外上限（通勤手当など）</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">対象ジャンルの支出をこの金額まで予算から除外します</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          <select id="cap-genre-sel" style="flex:1;border:1px solid var(--border);border-radius:8px;padding:7px 8px;font-family:inherit;font-size:13px;background:var(--bg);outline:none;color:var(--text)"></select>
+          <input type="number" id="cap-inp" placeholder="例: 15000" min="0" oninput="checkCapBtn()" style="width:110px;border:1px solid var(--border);border-radius:8px;padding:7px 8px;font-family:inherit;font-size:13px;background:var(--bg);outline:none">
+          <button onclick="openCalc('cap-inp',checkCapBtn)" style="border:1px solid var(--border);background:var(--bg);border-radius:8px;font-size:15px;cursor:pointer;padding:5px 8px;color:#a89880;flex-shrink:0">🧮</button>
+          <span style="font-size:12px;color:var(--muted);flex-shrink:0">円</span>
+        </div>
+        <div id="cap-current" style="font-size:11px;color:#ff9500;margin-bottom:6px"></div>
+        <button class="bset-btn" id="cap-save-btn" onclick="saveCapLimit()" disabled style="background:#c7c7cc;cursor:default;width:100%;padding:10px">除外上限を保存</button>
+      </div>
+      <button class="bset-btn" id="budget-save-btn" onclick="saveBudget()" disabled style="background:#c7c7cc;cursor:default;width:100%;margin-top:8px;padding:10px">予算を保存する</button>
     </div>
     <div class="gcard"><div class="gcard-t">ジャンル別支出</div><div id="genre-bd"></div></div>
     <div class="gcard"><div class="gcard-t">💳 支払い方法別支出</div><div id="pay-bd-m"></div></div>
@@ -610,6 +622,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 <script>
 let records=JSON.parse(localStorage.getItem('kk_records')||'[]');
 let budgets=JSON.parse(localStorage.getItem('kk_budgets')||'{}');
+let capLimits=JSON.parse(localStorage.getItem('kk_cap_limits')||'{}');
 let fixed=JSON.parse(localStorage.getItem('kk_fixed')||'[]');
 let master=JSON.parse(localStorage.getItem('kk_master')||JSON.stringify({payments:['現金','リクルート','Olive','PayPay'],genres:['食費','外食','趣味','旅行・観光','交通費','車','弁当代','日用品','医療','給与','その他'],cards:[],excludeGenres:[]}));
 if(!master.excludeGenres) master.excludeGenres=[];
@@ -870,21 +883,27 @@ function renderM(){
   set('ana-sal-net','¥'+salRealNet.toLocaleString());set('ana-grand-total','¥'+grandIncomeTotal.toLocaleString());set('ana-income-sub','¥'+incomeTotal.toLocaleString()+(incomeTotal===0?' (未入力)':''));set('ana-allowance-sub','¥'+allowTotal.toLocaleString());
   const budget=budgets[key]||0;document.getElementById('b-inp').value=budget||'';
   const bBtn=document.getElementById('budget-save-btn');if(bBtn){bBtn.disabled=true;bBtn.style.background='#c7c7cc';bBtn.style.cursor='default';}
-  // ジャンル別に上限設定を考慮した予算計算
-  const varSpend=rr.filter(r=>r.type==='out'&&r.genre!=='固定費'&&!r.special).reduce((s,r)=>{
-    const cap=master.genreBudgetCap[r.genre]||0;
-    if(cap>0) return s; // 上限設定ありは後でまとめて計算
-    return s+r.amount;
-  },0);
-  // 上限設定ジャンルは「ジャンル合計 - 上限額」の超過分のみ加算
+  // 除外上限セレクト更新
+  const capSel=document.getElementById('cap-genre-sel');
+  if(capSel){capSel.innerHTML=master.genres.map(g=>`<option value="${g}">${g}</option>`).join('');}
+  // 月ごとの除外上限を考慮した予算計算
+  const capData=capLimits[key]||{};
+  const capCurrent=document.getElementById('cap-current');
+  if(capCurrent){
+    const caps=Object.entries(capData).filter(([,v])=>v>0);
+    capCurrent.textContent=caps.length>0?'設定中: '+caps.map(([g,v])=>`${g} ¥${v.toLocaleString()}`).join('・'):'';
+  }
+  const capBtn=document.getElementById('cap-save-btn');if(capBtn){capBtn.disabled=true;capBtn.style.background='#c7c7cc';capBtn.style.cursor='default';}
+  const capInp=document.getElementById('cap-inp');if(capInp)capInp.value='';
+  const varSpend=rr.filter(r=>r.type==='out'&&r.genre!=='固定費'&&!r.special&&!capData[r.genre]).reduce((s,r)=>s+r.amount,0);
   let capExcludeTotal=0;
-  Object.keys(master.genreBudgetCap).forEach(g=>{
-    const cap=master.genreBudgetCap[g];
+  Object.keys(capData).forEach(g=>{
+    const cap=capData[g];if(!cap)return;
     const gTotal=rr.filter(r=>r.type==='out'&&r.genre===g&&!r.special).reduce((s,r)=>s+r.amount,0);
-    capExcludeTotal+=Math.min(gTotal,cap); // 除外される金額
+    capExcludeTotal+=Math.min(gTotal,cap);
   });
-  const capGenreSpend=rr.filter(r=>r.type==='out'&&master.genreBudgetCap[r.genre]&&!r.special).reduce((s,r)=>s+r.amount,0);
-  const capOverSpend=Math.max(capGenreSpend-capExcludeTotal,0); // 上限超過分
+  const capGenreSpend=rr.filter(r=>r.type==='out'&&capData[r.genre]&&!r.special).reduce((s,r)=>s+r.amount,0);
+  const capOverSpend=Math.max(capGenreSpend-capExcludeTotal,0);
   const totalVarSpend=varSpend+capOverSpend;
   const excludeSpend=capExcludeTotal;
   const specialTotal=rr.filter(r=>r.type==='out'&&r.special).reduce((s,r)=>s+r.amount,0);
@@ -900,6 +919,8 @@ function renderM(){
   renderPayBreakdown(rr.filter(r=>r.type==='out'),'pay-bd-m');
 }
 
+function checkCapBtn(){const val=parseInt(document.getElementById('cap-inp').value)||0;const btn=document.getElementById('cap-save-btn');const ok=val>=0&&document.getElementById('cap-genre-sel').value;btn.disabled=!ok;btn.style.background=ok?'#ff9500':'#c7c7cc';btn.style.cursor=ok?'pointer':'default';}
+function saveCapLimit(){const key=ym(anaY,anaM);const g=document.getElementById('cap-genre-sel').value;const val=parseInt(document.getElementById('cap-inp').value)||0;if(!capLimits[key])capLimits[key]={};if(val>0)capLimits[key][g]=val;else delete capLimits[key][g];sv('kk_cap_limits',capLimits);renderM();toast(`${g} の除外上限を保存しました ✓`);}
 function saveBudget(){const key=ym(anaY,anaM),val=parseInt(document.getElementById('b-inp').value)||0;budgets[key]=val;sv('kk_budgets',budgets);renderM();renderCal();toast('予算を保存しました ✓');}
 
 function renderA(){
@@ -944,7 +965,11 @@ function addPayment(){const name=document.getElementById('pay-new-name').value.t
 function delPayment(i){if(!confirm(`「${master.payments[i]}」を削除しますか？`))return;master.payments.splice(i,1);sv('kk_master',master);applyMaster();renderPayList();toast('削除しました');}
 function editPayment(i){const name=prompt('支払い方法名を変更',master.payments[i]);if(!name||!name.trim())return;master.payments[i]=name.trim();sv('kk_master',master);applyMaster();renderPayList();toast('更新しました ✓');}
 function renderGenreList(){const el=document.getElementById('genre-list');if(!el)return;if(!master.genres.length){el.innerHTML='<div class="fi-empty">ジャンルが未登録です</div>';return;}el.innerHTML=master.genres.map((g,i)=>{const cap=master.genreBudgetCap[g]||0;const hasCap=cap>0;return `<div class="fi-item" style="flex-wrap:wrap;gap:6px"><div style="display:flex;flex-direction:column;gap:2px;margin-right:6px"><button onclick="moveItem('genre',${i},-1)" style="border:none;background:none;font-size:14px;cursor:pointer;color:${i===0?'#ddd':'#a89880'};padding:0;line-height:1" ${i===0?'disabled':''}>▲</button><button onclick="moveItem('genre',${i},1)" style="border:none;background:none;font-size:14px;cursor:pointer;color:${i===master.genres.length-1?'#ddd':'#a89880'};padding:0;line-height:1" ${i===master.genres.length-1?'disabled':''}>▼</button></div><div class="fi-left"><div class="fi-name">${g}</div>${hasCap?`<div class="fi-meta" style="color:#ff9500">⚡ 月${cap.toLocaleString()}円まで予算除外</div>`:''}</div><button onclick="setGenreCap('${g}')" style="border:1.5px solid ${hasCap?'#ff9500':'var(--border)'};background:${hasCap?'#fff8f0':'none'};color:${hasCap?'#ff9500':'var(--muted)'};font-size:11px;font-weight:700;cursor:pointer;padding:4px 8px;border-radius:7px;font-family:inherit;white-space:nowrap">${hasCap?'上限:¥'+cap.toLocaleString():'上限設定'}</button><button class="fi-edit" onclick="editGenre(${i})">編集</button><button class="fi-del" onclick="delGenre(${i})">✕</button></div>`;}).join('');}
-function setGenreCap(g){const cur=master.genreBudgetCap[g]||0;const val=prompt(`「${g}」の月あたり予算除外上限額を入力\n（例: 通勤手当15000なら15000）\n0または空欄で解除`,cur||'');if(val===null)return;const num=parseInt(val)||0;if(num>0){master.genreBudgetCap[g]=num;toast(`「${g}」月${num.toLocaleString()}円まで予算除外に設定`);}else{delete master.genreBudgetCap[g];toast(`「${g}」の除外設定を解除しました`);}sv('kk_master',master);renderGenreList();}
+let _capTargetGenre='';
+function setGenreCap(g){_capTargetGenre=g;document.getElementById('genre-cap-label').textContent=g;document.getElementById('genre-cap-inp').value=master.genreBudgetCap[g]||'';document.getElementById('genre-cap-form').style.display='block';document.getElementById('genre-cap-inp').focus();}
+function saveGenreCap(){const num=parseInt(document.getElementById('genre-cap-inp').value)||0;if(num>0){master.genreBudgetCap[_capTargetGenre]=num;toast(`「${_capTargetGenre}」月${num.toLocaleString()}円まで予算除外`);}else{delete master.genreBudgetCap[_capTargetGenre];toast('解除しました');}sv('kk_master',master);closeGenreCapForm();renderGenreList();}
+function clearGenreCap(){delete master.genreBudgetCap[_capTargetGenre];sv('kk_master',master);closeGenreCapForm();renderGenreList();toast('解除しました');}
+function closeGenreCapForm(){document.getElementById('genre-cap-form').style.display='none';document.getElementById('genre-cap-inp').value='';_capTargetGenre='';}
 function checkGenreBtn(){const ok=!!document.getElementById('genre-new-name').value.trim();const btn=document.getElementById('genre-add-btn');btn.disabled=!ok;btn.style.background=ok?'#007aff':'#c7c7cc';}
 function addGenre(){const name=document.getElementById('genre-new-name').value.trim();if(!name)return;if(master.genres.includes(name)){toast('すでに存在します');return;}master.genres.push(name);sv('kk_master',master);applyMaster();renderGenreList();document.getElementById('genre-new-name').value='';checkGenreBtn();toast('追加しました ✓');}
 function delGenre(i){if(!confirm(`「${master.genres[i]}」を削除しますか？`))return;master.genres.splice(i,1);sv('kk_master',master);applyMaster();renderGenreList();toast('削除しました');}
@@ -998,8 +1023,8 @@ function calcApply(){if(!calcTargetId)return;const val=Math.round(parseFloat(cal
 
 function parseSalaryText(){const text=document.getElementById('sal-paste-area').value.trim();const status=document.getElementById('sal-parse-status');if(!text){status.style.display='block';status.style.color='#ff9500';status.textContent='⚠️ テキストを貼り付けてください';return;}function isNumLine(str){const s=str.trim().replace(/[\uff0c,]/g,'').replace(/[\uff10-\uff19]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0));return /^[0-9]+$/.test(s);}function parseNumLine(str){const s=str.trim().replace(/[\uff0c,]/g,'').replace(/[\uff10-\uff19]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0));return parseInt(s);}const lines=text.split('\n').map(l=>l.trim()).filter(l=>l.length>0);let matched=0,unmatched=[];function tryMatch(label,num){let found=false;salItems.forEach(s=>{const el=document.getElementById('sif_'+s.id);if(!el)return;const nameNorm=s.name.replace(/[\u30fb\uff65\s]/g,'');const labelNorm=label.replace(/[\u30fb\uff65\s]/g,'');if(nameNorm.slice(0,3).length>=2&&labelNorm.includes(nameNorm.slice(0,3))&&!found){el.value=num;found=true;matched++;}});if(!found&&label.length>0)unmatched.push(label+'→¥'+num.toLocaleString());}let i=0;while(i<lines.length){const line=lines[i];if(isNumLine(line)){i++;continue;}if(i+1<lines.length&&isNumLine(lines[i+1])){const num=parseNumLine(lines[i+1]);if(num>0)tryMatch(line,num);i+=2;}else{const s=line.replace(/[\uff0c,]/g,'').replace(/[\uff10-\uff19]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0));const m=s.match(/[0-9]+/g);if(m){const num=parseInt(m[m.length-1]);if(num>0)tryMatch(line.replace(/[\s0-9,，\uff0c\uff10-\uff19]+$/,'').trim(),num);}i++;}}calcSalary();status.style.display='block';if(matched===0){status.style.color='#ff3b30';status.textContent='❌ 振り分けられる項目が見つかりませんでした';}else{let msg='✅ '+matched+'項目を自動入力しました';if(unmatched.length>0){status.style.color='#ff9500';msg+=' ⚠️未振り分け: '+unmatched.join(' / ');}else status.style.color='#34c759';status.textContent=msg;}}
 
-function exportData(){const blob=new Blob([JSON.stringify({records,budgets,fixed,master,bulkCats,salaries,incomes,discountTypes,allowanceTypes},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='家計簿_'+fmtDate(today).replace(/-/g,'')+'.json';a.click();}
-function importData(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{const data=JSON.parse(ev.target.result);if(data.records)records=data.records;if(data.budgets)budgets=data.budgets;if(data.fixed)fixed=data.fixed;if(data.master)master=data.master;if(data.bulkCats)bulkCats=data.bulkCats;if(data.salaries)salaries=data.salaries;if(data.incomes)incomes=data.incomes;if(data.discountTypes)discountTypes=data.discountTypes;if(data.allowanceTypes)allowanceTypes=data.allowanceTypes;sv('kk_records',records);sv('kk_budgets',budgets);sv('kk_fixed',fixed);sv('kk_master',master);sv('kk_bulkCats',bulkCats);sv('kk_salaries',salaries);sv('kk_incomes',incomes);sv('kk_discount_types',discountTypes);sv('kk_allowance_types',allowanceTypes);selBulkId=bulkCats[0]?.id||null;applyMaster();renderCal();renderFixedLists();renderBulkCatList();renderBulkCatBtns();toast('復元しました ✓');}catch(err){toast('ファイルが無効です');}};reader.readAsText(file);e.target.value='';}
+function exportData(){const blob=new Blob([JSON.stringify({records,budgets,capLimits,fixed,master,bulkCats,salaries,incomes,discountTypes,allowanceTypes},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='家計簿_'+fmtDate(today).replace(/-/g,'')+'.json';a.click();}
+function importData(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{const data=JSON.parse(ev.target.result);if(data.records)records=data.records;if(data.budgets)budgets=data.budgets;if(data.fixed)fixed=data.fixed;if(data.master)master=data.master;if(data.bulkCats)bulkCats=data.bulkCats;if(data.salaries)salaries=data.salaries;if(data.incomes)incomes=data.incomes;if(data.discountTypes)discountTypes=data.discountTypes;if(data.allowanceTypes)allowanceTypes=data.allowanceTypes;if(data.capLimits)capLimits=data.capLimits;sv('kk_records',records);sv('kk_budgets',budgets);sv('kk_cap_limits',capLimits);sv('kk_fixed',fixed);sv('kk_master',master);sv('kk_bulkCats',bulkCats);sv('kk_salaries',salaries);sv('kk_incomes',incomes);sv('kk_discount_types',discountTypes);sv('kk_allowance_types',allowanceTypes);selBulkId=bulkCats[0]?.id||null;applyMaster();renderCal();renderFixedLists();renderBulkCatList();renderBulkCatBtns();toast('復元しました ✓');}catch(err){toast('ファイルが無効です');}};reader.readAsText(file);e.target.value='';}
 
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 
