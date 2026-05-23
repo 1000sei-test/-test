@@ -327,9 +327,9 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
         <div class="sl" style="color:#5a8a5a;font-size:13px;font-weight:700">💴 総収入（手取り＋副業＋手当て）</div>
         <div class="sv" style="color:#2e7d32;font-size:26px" id="ana-grand-total">¥0</div>
         <div style="margin-top:10px;padding-top:8px;border-top:1px solid #a5d6a7;display:flex;flex-wrap:wrap;gap:10px">
-          <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:10px;color:#5a8a5a">給与手取り</div><div style="font-size:14px;font-weight:700;color:#2e7d32" id="ana-sal-net">¥0</div></div>
+          <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:10px;color:#5a8a5a">実質手取り（手当て込）</div><div style="font-size:14px;font-weight:700;color:#2e7d32" id="ana-sal-net">¥0</div></div>
           <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:10px;color:#5a8a5a">副業・その他</div><div style="font-size:14px;font-weight:700;color:#2e7d32" id="ana-income-sub">¥0</div></div>
-          <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:10px;color:#4a70a8">💼 手当て</div><div style="font-size:14px;font-weight:700;color:#4a70a8" id="ana-allowance-sub">¥0</div></div>
+          <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:10px;color:#4a70a8">💼 手当て（内訳）</div><div style="font-size:14px;font-weight:700;color:#4a70a8" id="ana-allowance-sub">¥0</div></div>
         </div>
       </div>
     </div>
@@ -839,11 +839,16 @@ function renderM(){
   const spTotal=rr.filter(r=>r.type==='out'&&r.special).reduce((s,r)=>s+r.amount,0);
   if(document.getElementById('ana-special'))document.getElementById('ana-special').textContent='¥'+spTotal.toLocaleString();
   const allowTotal=rr.filter(r=>r.type==='out').reduce((s,r)=>s+(r.allowance||0),0);
-  const salData=salaries[key]||{};const salNet=(salData.net||0)+(salData.bonusNet||0);
+  const salData=salaries[key]||{};
+  // 実質手取り = 手取り + ボーナス手取り + addToNet控除 + 手当て
+  const salNetBase=(salData.net||0);
+  const salBonusNet=(salData.bonusNet||0);
+  const salAddBack=salItems.filter(s=>s.type==='ded'&&s.addToNet).reduce((sum,s)=>sum+(salData.items?.[s.id]||0),0);
+  const salRealNet=salNetBase+salBonusNet+salAddBack+allowTotal;
   const incomeTotal=incomes.filter(r=>r.date.startsWith(key)).reduce((s,r)=>s+r.amount,0);
-  const grandIncomeTotal=salNet+incomeTotal+allowTotal;
+  const grandIncomeTotal=salRealNet+incomeTotal;
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  set('ana-sal-net','¥'+salNet.toLocaleString());set('ana-grand-total','¥'+grandIncomeTotal.toLocaleString());set('ana-income-sub','¥'+incomeTotal.toLocaleString()+(incomeTotal===0?' (未入力)':''));set('ana-allowance-sub','¥'+allowTotal.toLocaleString());
+  set('ana-sal-net','¥'+salRealNet.toLocaleString());set('ana-grand-total','¥'+grandIncomeTotal.toLocaleString());set('ana-income-sub','¥'+incomeTotal.toLocaleString()+(incomeTotal===0?' (未入力)':''));set('ana-allowance-sub','¥'+allowTotal.toLocaleString());
   const budget=budgets[key]||0;document.getElementById('b-inp').value=budget||'';
   const bBtn=document.getElementById('budget-save-btn');if(bBtn){bBtn.disabled=true;bBtn.style.background='#c7c7cc';bBtn.style.cursor='default';}
   const varSpend=rr.filter(r=>r.type==='out'&&r.genre!=='固定費'&&!r.special).reduce((s,r)=>s+r.amount,0);
