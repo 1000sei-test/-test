@@ -554,7 +554,24 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   <div class="sst">💳 支払い方法</div>
   <div class="scard"><div class="fi-list" id="pay-list"></div><div class="fi-form"><div class="fi-form-row"><label>名前</label><input type="text" id="pay-new-name" placeholder="例: NLゴールド" oninput="checkPayBtn()"></div><button class="fi-add-btn" id="pay-add-btn" onclick="addPayment()" disabled>追加する</button></div></div>
   <div class="sst">🏷️ ジャンル</div>
-  <div class="scard"><div class="fi-list" id="genre-list"></div><div class="fi-form"><div class="fi-form-row"><label>名前</label><input type="text" id="genre-new-name" placeholder="例: サウナ" oninput="checkGenreBtn()"></div><button class="fi-add-btn" id="genre-add-btn" onclick="addGenre()" disabled>追加する</button></div></div>
+  <div class="scard">
+    <div class="fi-list" id="genre-list"></div>
+    <div id="genre-cap-form" style="display:none;border-top:1px solid var(--border);padding:14px;background:#fff8f0">
+      <div style="font-size:13px;font-weight:700;color:#ff9500;margin-bottom:8px">⚡ <span id="genre-cap-label"></span> の予算除外上限</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">毎月この金額までをガソリン代など予算から除外します。超えた分だけ予算に加算されます。</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <input type="number" id="genre-cap-inp" placeholder="例: 15000" min="0" style="flex:1;border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-family:inherit;font-size:15px;background:var(--bg);outline:none">
+        <button onclick="openCalc('genre-cap-inp')" style="border:1px solid var(--border);background:var(--bg);border-radius:8px;font-size:15px;cursor:pointer;padding:7px 10px;color:#a89880;flex-shrink:0">🧮</button>
+        <span style="font-size:13px;color:var(--muted);flex-shrink:0">円</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="saveGenreCap()" style="flex:1;padding:10px;background:#ff9500;color:#fff;border:none;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">設定する</button>
+        <button onclick="clearGenreCap()" style="padding:10px 14px;background:#e5e5ea;color:var(--text);border:none;border-radius:9px;font-family:inherit;font-size:14px;cursor:pointer">解除</button>
+        <button onclick="closeGenreCapForm()" style="padding:10px 14px;background:#e5e5ea;color:var(--text);border:none;border-radius:9px;font-family:inherit;font-size:14px;cursor:pointer">閉じる</button>
+      </div>
+    </div>
+    <div class="fi-form"><div class="fi-form-row"><label>名前</label><input type="text" id="genre-new-name" placeholder="例: サウナ" oninput="checkGenreBtn()"></div><button class="fi-add-btn" id="genre-add-btn" onclick="addGenre()" disabled>追加する</button></div>
+  </div>
   <div class="sst">⚡ 一括入力カテゴリ設定</div>
   <div class="scard"><div class="fi-list" id="bulk-cat-list"></div><div class="fi-form"><div class="fi-form-title">＋ カテゴリを追加</div><div class="fi-form-row"><label>名前</label><input type="text" id="bc-name" placeholder="例: 弁当代" oninput="checkBulkCatBtn()"></div><div class="fi-form-row"><label>絵文字</label><input type="text" id="bc-emoji" placeholder="例: 🍱" maxlength="2" style="width:60px;flex:none"></div><div class="fi-form-row"><label>単価</label><input type="number" id="bc-price" placeholder="500" min="0" oninput="checkBulkCatBtn()"><button onclick="openCalc('bc-price',checkBulkCatBtn)" style="border:1px solid var(--border);background:var(--card);border-radius:8px;font-size:15px;cursor:pointer;padding:5px 8px;color:#a89880;flex-shrink:0">🧮</button><span class="unit">円</span></div><div class="fi-form-row"><label>ジャンル</label><select id="bc-genre"></select></div><div class="fi-form-row"><label>支払い</label><select id="bc-pay"></select></div><button class="fi-add-btn" id="bc-btn" onclick="addBulkCat()" disabled>追加する</button></div></div>
   <div class="sst">⚡ 一括入力</div>
@@ -594,7 +611,9 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 let records=JSON.parse(localStorage.getItem('kk_records')||'[]');
 let budgets=JSON.parse(localStorage.getItem('kk_budgets')||'{}');
 let fixed=JSON.parse(localStorage.getItem('kk_fixed')||'[]');
-let master=JSON.parse(localStorage.getItem('kk_master')||JSON.stringify({payments:['現金','リクルート','Olive','PayPay'],genres:['食費','外食','趣味','旅行・観光','交通費','車','弁当代','日用品','医療','給与','その他'],cards:[]}));
+let master=JSON.parse(localStorage.getItem('kk_master')||JSON.stringify({payments:['現金','リクルート','Olive','PayPay'],genres:['食費','外食','趣味','旅行・観光','交通費','車','弁当代','日用品','医療','給与','その他'],cards:[],excludeGenres:[]}));
+if(!master.excludeGenres) master.excludeGenres=[];
+if(!master.genreBudgetCap) master.genreBudgetCap={};
 let bulkCats=JSON.parse(localStorage.getItem('kk_bulkCats')||JSON.stringify([{id:'bc_default',name:'弁当代',emoji:'🍱',price:500,genre:'弁当代',payment:'現金'}]));
 let selBulkId=bulkCats[0]?.id||null;
 const DEFAULT_SAL_ITEMS=[{id:'si_base',name:'基本給',type:'inc',addToNet:false},{id:'si_housing',name:'住宅手当',type:'inc',addToNet:false},{id:'si_overtime',name:'残業代',type:'inc',addToNet:false},{id:'si_commute',name:'通勤手当',type:'inc',addToNet:false},{id:'si_area',name:'地域手当',type:'inc',addToNet:false},{id:'si_travel',name:'出張手当',type:'inc',addToNet:false},{id:'si_health',name:'健康保険',type:'ded',addToNet:false},{id:'si_pension',name:'厚生年金',type:'ded',addToNet:false},{id:'si_employ',name:'雇用保険',type:'ded',addToNet:false},{id:'si_care',name:'介護保険',type:'ded',addToNet:false},{id:'si_itax',name:'所得税',type:'ded',addToNet:false},{id:'si_rtax',name:'住民税',type:'ded',addToNet:false},{id:'si_member',name:'会費・積立',type:'ded',addToNet:false},{id:'si_other',name:'その他控除',type:'ded',addToNet:true}];
@@ -851,9 +870,25 @@ function renderM(){
   set('ana-sal-net','¥'+salRealNet.toLocaleString());set('ana-grand-total','¥'+grandIncomeTotal.toLocaleString());set('ana-income-sub','¥'+incomeTotal.toLocaleString()+(incomeTotal===0?' (未入力)':''));set('ana-allowance-sub','¥'+allowTotal.toLocaleString());
   const budget=budgets[key]||0;document.getElementById('b-inp').value=budget||'';
   const bBtn=document.getElementById('budget-save-btn');if(bBtn){bBtn.disabled=true;bBtn.style.background='#c7c7cc';bBtn.style.cursor='default';}
-  const varSpend=rr.filter(r=>r.type==='out'&&r.genre!=='固定費'&&!r.special).reduce((s,r)=>s+r.amount,0);
+  // ジャンル別に上限設定を考慮した予算計算
+  const varSpend=rr.filter(r=>r.type==='out'&&r.genre!=='固定費'&&!r.special).reduce((s,r)=>{
+    const cap=master.genreBudgetCap[r.genre]||0;
+    if(cap>0) return s; // 上限設定ありは後でまとめて計算
+    return s+r.amount;
+  },0);
+  // 上限設定ジャンルは「ジャンル合計 - 上限額」の超過分のみ加算
+  let capExcludeTotal=0;
+  Object.keys(master.genreBudgetCap).forEach(g=>{
+    const cap=master.genreBudgetCap[g];
+    const gTotal=rr.filter(r=>r.type==='out'&&r.genre===g&&!r.special).reduce((s,r)=>s+r.amount,0);
+    capExcludeTotal+=Math.min(gTotal,cap); // 除外される金額
+  });
+  const capGenreSpend=rr.filter(r=>r.type==='out'&&master.genreBudgetCap[r.genre]&&!r.special).reduce((s,r)=>s+r.amount,0);
+  const capOverSpend=Math.max(capGenreSpend-capExcludeTotal,0); // 上限超過分
+  const totalVarSpend=varSpend+capOverSpend;
+  const excludeSpend=capExcludeTotal;
   const specialTotal=rr.filter(r=>r.type==='out'&&r.special).reduce((s,r)=>s+r.amount,0);
-  if(budget>0){const pct=Math.min(varSpend/budget*100,100),over=varSpend>budget;document.getElementById('b-fill').style.width=pct+'%';document.getElementById('b-fill').style.background=over?'#ff3b30':pct>80?'#ff9500':'#34c759';document.getElementById('b-pct').textContent=Math.round(varSpend/budget*100)+'%';const spNote=specialTotal>0?` ／ 特別 ¥${specialTotal.toLocaleString()} 除く`:'';document.getElementById('b-sub').textContent='変動費 ¥'+varSpend.toLocaleString()+' / 予算 ¥'+budget.toLocaleString()+(over?' ⚠ 超過':'')+spNote;}
+  if(budget>0){const pct=Math.min(totalVarSpend/budget*100,100),over=totalVarSpend>budget;document.getElementById('b-fill').style.width=pct+'%';document.getElementById('b-fill').style.background=over?'#ff3b30':pct>80?'#ff9500':'#34c759';document.getElementById('b-pct').textContent=Math.round(totalVarSpend/budget*100)+'%';const spNote=specialTotal>0?` ／ 特別 ¥${specialTotal.toLocaleString()} 除く`:'';const exNote=excludeSpend>0?` ／ 除外 ¥${excludeSpend.toLocaleString()}`:'' ;document.getElementById('b-sub').textContent='変動費 ¥'+totalVarSpend.toLocaleString()+' / 予算 ¥'+budget.toLocaleString()+(over?' ⚠ 超過':'')+spNote+exNote;}
   else{document.getElementById('b-fill').style.width='0%';document.getElementById('b-pct').textContent='-';document.getElementById('b-sub').textContent='予算未設定';}
   const gmAll={},gmSp={};
   rr.filter(r=>r.type==='out').forEach(r=>{gmAll[r.genre]=(gmAll[r.genre]||0)+r.amount;if(r.special)gmSp[r.genre]=(gmSp[r.genre]||0)+r.amount;});
@@ -908,7 +943,8 @@ function checkPayBtn(){const ok=!!document.getElementById('pay-new-name').value.
 function addPayment(){const name=document.getElementById('pay-new-name').value.trim();if(!name)return;if(master.payments.includes(name)){toast('すでに存在します');return;}master.payments.push(name);sv('kk_master',master);applyMaster();renderPayList();document.getElementById('pay-new-name').value='';checkPayBtn();toast('追加しました ✓');}
 function delPayment(i){if(!confirm(`「${master.payments[i]}」を削除しますか？`))return;master.payments.splice(i,1);sv('kk_master',master);applyMaster();renderPayList();toast('削除しました');}
 function editPayment(i){const name=prompt('支払い方法名を変更',master.payments[i]);if(!name||!name.trim())return;master.payments[i]=name.trim();sv('kk_master',master);applyMaster();renderPayList();toast('更新しました ✓');}
-function renderGenreList(){const el=document.getElementById('genre-list');if(!el)return;if(!master.genres.length){el.innerHTML='<div class="fi-empty">ジャンルが未登録です</div>';return;}el.innerHTML=master.genres.map((g,i)=>`<div class="fi-item"><div style="display:flex;flex-direction:column;gap:2px;margin-right:6px"><button onclick="moveItem('genre',${i},-1)" style="border:none;background:none;font-size:14px;cursor:pointer;color:${i===0?'#ddd':'#a89880'};padding:0;line-height:1" ${i===0?'disabled':''}>▲</button><button onclick="moveItem('genre',${i},1)" style="border:none;background:none;font-size:14px;cursor:pointer;color:${i===master.genres.length-1?'#ddd':'#a89880'};padding:0;line-height:1" ${i===master.genres.length-1?'disabled':''}>▼</button></div><div class="fi-left"><div class="fi-name">${g}</div></div><button class="fi-edit" onclick="editGenre(${i})">編集</button><button class="fi-del" onclick="delGenre(${i})">✕</button></div>`).join('');}
+function renderGenreList(){const el=document.getElementById('genre-list');if(!el)return;if(!master.genres.length){el.innerHTML='<div class="fi-empty">ジャンルが未登録です</div>';return;}el.innerHTML=master.genres.map((g,i)=>{const cap=master.genreBudgetCap[g]||0;const hasCap=cap>0;return `<div class="fi-item" style="flex-wrap:wrap;gap:6px"><div style="display:flex;flex-direction:column;gap:2px;margin-right:6px"><button onclick="moveItem('genre',${i},-1)" style="border:none;background:none;font-size:14px;cursor:pointer;color:${i===0?'#ddd':'#a89880'};padding:0;line-height:1" ${i===0?'disabled':''}>▲</button><button onclick="moveItem('genre',${i},1)" style="border:none;background:none;font-size:14px;cursor:pointer;color:${i===master.genres.length-1?'#ddd':'#a89880'};padding:0;line-height:1" ${i===master.genres.length-1?'disabled':''}>▼</button></div><div class="fi-left"><div class="fi-name">${g}</div>${hasCap?`<div class="fi-meta" style="color:#ff9500">⚡ 月${cap.toLocaleString()}円まで予算除外</div>`:''}</div><button onclick="setGenreCap('${g}')" style="border:1.5px solid ${hasCap?'#ff9500':'var(--border)'};background:${hasCap?'#fff8f0':'none'};color:${hasCap?'#ff9500':'var(--muted)'};font-size:11px;font-weight:700;cursor:pointer;padding:4px 8px;border-radius:7px;font-family:inherit;white-space:nowrap">${hasCap?'上限:¥'+cap.toLocaleString():'上限設定'}</button><button class="fi-edit" onclick="editGenre(${i})">編集</button><button class="fi-del" onclick="delGenre(${i})">✕</button></div>`;}).join('');}
+function setGenreCap(g){const cur=master.genreBudgetCap[g]||0;const val=prompt(`「${g}」の月あたり予算除外上限額を入力\n（例: 通勤手当15000なら15000）\n0または空欄で解除`,cur||'');if(val===null)return;const num=parseInt(val)||0;if(num>0){master.genreBudgetCap[g]=num;toast(`「${g}」月${num.toLocaleString()}円まで予算除外に設定`);}else{delete master.genreBudgetCap[g];toast(`「${g}」の除外設定を解除しました`);}sv('kk_master',master);renderGenreList();}
 function checkGenreBtn(){const ok=!!document.getElementById('genre-new-name').value.trim();const btn=document.getElementById('genre-add-btn');btn.disabled=!ok;btn.style.background=ok?'#007aff':'#c7c7cc';}
 function addGenre(){const name=document.getElementById('genre-new-name').value.trim();if(!name)return;if(master.genres.includes(name)){toast('すでに存在します');return;}master.genres.push(name);sv('kk_master',master);applyMaster();renderGenreList();document.getElementById('genre-new-name').value='';checkGenreBtn();toast('追加しました ✓');}
 function delGenre(i){if(!confirm(`「${master.genres[i]}」を削除しますか？`))return;master.genres.splice(i,1);sv('kk_master',master);applyMaster();renderGenreList();toast('削除しました');}
