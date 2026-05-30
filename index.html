@@ -592,7 +592,31 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     <div class="fi-form"><div class="fi-form-row"><label>名前</label><input type="text" id="genre-new-name" placeholder="例: サウナ" oninput="checkGenreBtn()"></div><button class="fi-add-btn" id="genre-add-btn" onclick="addGenre()" disabled>追加する</button></div>
   </div>
   <div class="sst">⚡ 一括入力カテゴリ設定</div>
-  <div class="scard"><div class="fi-list" id="bulk-cat-list"></div><div class="fi-form"><div class="fi-form-title">＋ カテゴリを追加</div><div class="fi-form-row"><label>名前</label><input type="text" id="bc-name" placeholder="例: 弁当代" oninput="checkBulkCatBtn()"></div><div class="fi-form-row"><label>絵文字</label><input type="text" id="bc-emoji" placeholder="例: 🍱" maxlength="2" style="width:60px;flex:none"></div><div class="fi-form-row"><label>単価</label><input type="number" id="bc-price" placeholder="500" min="0" oninput="checkBulkCatBtn()"><button onclick="openCalc('bc-price',checkBulkCatBtn)" style="border:1px solid var(--border);background:var(--card);border-radius:8px;font-size:15px;cursor:pointer;padding:5px 8px;color:#a89880;flex-shrink:0">🧮</button><span class="unit">円</span></div><div class="fi-form-row"><label>ジャンル</label><select id="bc-genre"></select></div><div class="fi-form-row"><label>支払い</label><select id="bc-pay"></select></div><button class="fi-add-btn" id="bc-btn" onclick="addBulkCat()" disabled>追加する</button></div></div>
+  <div class="scard">
+    <div class="fi-list" id="bulk-cat-list"></div>
+    <div id="bulk-cat-edit-form" style="display:none;border-top:1px solid var(--border);padding:14px;background:#f0f7f4">
+      <div style="font-size:13px;font-weight:700;color:#5b7e6e;margin-bottom:10px">✏️ カテゴリを編集</div>
+      <input type="hidden" id="bce-id">
+      <div class="fi-form-row"><label>名前</label><input type="text" id="bce-name" placeholder="例: 弁当代"></div>
+      <div class="fi-form-row"><label>絵文字</label><input type="text" id="bce-emoji" maxlength="2" style="width:60px;flex:none"></div>
+      <div class="fi-form-row"><label>単価</label><input type="number" id="bce-price" placeholder="500" min="0"><button onclick="openCalc('bce-price')" style="border:1px solid var(--border);background:var(--card);border-radius:8px;font-size:15px;cursor:pointer;padding:5px 8px;color:#a89880;flex-shrink:0">🧮</button><span class="unit">円</span></div>
+      <div class="fi-form-row"><label>ジャンル</label><select id="bce-genre"></select></div>
+      <div class="fi-form-row"><label>支払い</label><select id="bce-pay"></select></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="saveBulkCatEdit()" style="flex:1;padding:10px;background:#5b7e6e;color:#fff;border:none;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">保存する</button>
+        <button onclick="closeBulkCatEditForm()" style="padding:10px 14px;background:#e5e5ea;color:var(--text);border:none;border-radius:9px;font-family:inherit;font-size:14px;cursor:pointer">閉じる</button>
+      </div>
+    </div>
+    <div class="fi-form">
+      <div class="fi-form-title">＋ カテゴリを追加</div>
+      <div class="fi-form-row"><label>名前</label><input type="text" id="bc-name" placeholder="例: 弁当代" oninput="checkBulkCatBtn()"></div>
+      <div class="fi-form-row"><label>絵文字</label><input type="text" id="bc-emoji" placeholder="例: 🍱" maxlength="2" style="width:60px;flex:none"></div>
+      <div class="fi-form-row"><label>単価</label><input type="number" id="bc-price" placeholder="500" min="0" oninput="checkBulkCatBtn()"><button onclick="openCalc('bc-price',checkBulkCatBtn)" style="border:1px solid var(--border);background:var(--card);border-radius:8px;font-size:15px;cursor:pointer;padding:5px 8px;color:#a89880;flex-shrink:0">🧮</button><span class="unit">円</span></div>
+      <div class="fi-form-row"><label>ジャンル</label><select id="bc-genre"></select></div>
+      <div class="fi-form-row"><label>支払い</label><select id="bc-pay"></select></div>
+      <button class="fi-add-btn" id="bc-btn" onclick="addBulkCat()" disabled>追加する</button>
+    </div>
+  </div>
   <div class="sst">⚡ 一括入力</div>
   <div class="scard" style="padding:14px">
     <div style="margin-bottom:12px"><div style="font-size:12px;color:var(--muted);margin-bottom:8px">カテゴリを選択</div><div id="bm-cat-btns" style="display:flex;flex-wrap:wrap;gap:8px"></div></div>
@@ -944,10 +968,18 @@ function renderM(){
     const col=gc(g);const sp=gmSp[g]||0;
     const spBadge=sp>0?`<span class="special-badge">特別¥${sp.toLocaleString()}</span>`:'';
     const detailId=`gd_${idx}`;
-    // 内訳ジャンル（このジャンルを親とするジャンル）
-    const subGenres=Object.entries(master.genreParent).filter(([,p])=>p===g).map(([s])=>s);
+    // 内訳ジャンル（ジャンル or 一括カテゴリ）
+    const subGenres=Object.entries(master.genreParent).filter(([,p])=>{
+      if(p===`g:${g}`)return true;
+      // 旧形式互換
+      if(p===g)return true;
+      return false;
+    }).map(([s])=>s);
+    const subBulkCats=Object.entries(master.genreParent).filter(([,p])=>p===`b:${g.id}`||bulkCats.some(c=>p===`b:${c.id}`&&c.genre===g)).map(([s])=>s);
+    // b:付きのものをbulkCat内訳として処理
+    const bulkParents=Object.entries(master.genreParent).filter(([sg,p])=>p.startsWith('b:')&&rr.some(r=>r.genre===g&&r.bulkCatId===p.slice(2)));
     let subHtml='';
-    if(subGenres.length>0){
+    if(subGenres.length>0||bulkParents.length>0){
       subHtml='<div style="margin:6px 0 4px;padding:6px 8px;background:#f0ede8;border-radius:8px">';
       subGenres.forEach(sg=>{
         const sgTotal=rr.filter(r=>r.type==='out'&&r.genre===sg).reduce((s,r)=>s+r.amount,0);
@@ -955,10 +987,29 @@ function renderM(){
         const sgCol=gc(sg);
         subHtml+=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px"><div style="width:8px;height:8px;border-radius:50%;background:${sgCol};flex-shrink:0"></div><div style="flex:1;color:#666">└ ${sg}</div><div style="font-weight:700;color:${sgCol}">¥${sgTotal.toLocaleString()}</div><div style="font-size:10px;color:#aaa">${Math.round(sgTotal/total*100)}%</div></div>`;
       });
+      bulkParents.forEach(([sg,p])=>{
+        const bcId=p.slice(2);const bc=bulkCats.find(c=>c.id===bcId);if(!bc)return;
+        const bcTotal=rr.filter(r=>r.type==='out'&&r.genre===g&&r.bulkCatId===bcId).reduce((s,r)=>s+r.amount,0);
+        if(bcTotal===0)return;
+        subHtml+=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px"><div style="flex-shrink:0">${bc.emoji}</div><div style="flex:1;color:#666">└ ${bc.name}</div><div style="font-weight:700;color:#5b7e6e">¥${bcTotal.toLocaleString()}</div><div style="font-size:10px;color:#aaa">${Math.round(bcTotal/total*100)}%</div></div>`;
+      });
       subHtml+='</div>';
     }
+    // 一括入力カテゴリ別内訳（このジャンルに属するもの）
+    const catSubs=bulkCats.filter(c=>c.genre===g);
+    let bulkSubHtml='';
+    if(catSubs.length>0){
+      const catTotals=catSubs.map(c=>({c,total:rr.filter(r=>r.type==='out'&&r.bulkCatId===c.id).reduce((s,r)=>s+r.amount,0)})).filter(x=>x.total>0);
+      if(catTotals.length>0){
+        bulkSubHtml='<div style="margin:6px 0 4px;padding:6px 8px;background:#f0f5f0;border-radius:8px">';
+        catTotals.forEach(({c,total:ct})=>{
+          bulkSubHtml+=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px;border-bottom:1px solid #e8e8e8"><div style="flex-shrink:0">${c.emoji}</div><div style="flex:1;color:#555">${c.name}</div><div style="font-weight:700;color:#5b7e6e">¥${ct.toLocaleString()}</div><div style="font-size:10px;color:#aaa">${Math.round(ct/total*100)}%</div></div>`;
+        });
+        bulkSubHtml+='</div>';
+      }
+    }
     const rows=rr.filter(r=>r.type==='out'&&r.genre===g).sort((a,b)=>a.date>b.date?1:-1).map(r=>`<div class="genre-detail-row"><div class="dr-date">${r.date.slice(5)}</div><div class="dr-title">${r.title}${r.special?'<span class="special-badge">特別</span>':''}</div><div class="dr-amt">¥${r.amount.toLocaleString()}</div></div>`).join('');
-    h+=`<div><div class="grow" data-detail-id="${detailId}" onclick="handleGenreClick(this)"><div class="gdot" style="background:${col}"></div><div class="gname">${g} ${spBadge}</div><div class="gtrack"><div class="gfill" style="width:${total/maxG*100}%;background:${col}"></div></div><div class="gamt" style="color:${col}">¥${total.toLocaleString()}</div><span class="gchevron">▶</span></div><div class="genre-detail" id="${detailId}">${subHtml}${rows}</div></div>`;
+    h+=`<div><div class="grow" data-detail-id="${detailId}" onclick="handleGenreClick(this)"><div class="gdot" style="background:${col}"></div><div class="gname">${g} ${spBadge}</div><div class="gtrack"><div class="gfill" style="width:${total/maxG*100}%;background:${col}"></div></div><div class="gamt" style="color:${col}">¥${total.toLocaleString()}</div><span class="gchevron">▶</span></div><div class="genre-detail" id="${detailId}">${subHtml}${bulkSubHtml}${rows}</div></div>`;
   });
   document.getElementById('genre-bd').innerHTML=h;
   renderPayBreakdown(rr.filter(r=>r.type==='out'),'pay-bd-m');
@@ -1016,7 +1067,7 @@ function saveGenreCap(){const num=parseInt(document.getElementById('genre-cap-in
 function clearGenreCap(){delete master.genreBudgetCap[_capTargetGenre];sv('kk_master',master);closeGenreCapForm();renderGenreList();toast('解除しました');}
 function closeGenreCapForm(){document.getElementById('genre-cap-form').style.display='none';document.getElementById('genre-cap-inp').value='';_capTargetGenre='';}
 let _parentTargetGenre='';
-function setGenreParent(g){_parentTargetGenre=g;document.getElementById('genre-parent-label').textContent=g;const sel=document.getElementById('genre-parent-sel');sel.innerHTML='<option value="">（なし）</option>'+master.genres.filter(x=>x!==g).map(x=>`<option value="${x}">${x}</option>`).join('');sel.value=master.genreParent[g]||'';document.getElementById('genre-parent-form').style.display='block';}
+function setGenreParent(g){_parentTargetGenre=g;document.getElementById('genre-parent-label').textContent=g;const sel=document.getElementById('genre-parent-sel');const genreOpts=master.genres.filter(x=>x!==g).map(x=>`<option value="g:${x}">${x}（ジャンル）</option>`).join('');const bulkOpts=bulkCats.map(c=>`<option value="b:${c.id}">${c.emoji} ${c.name}（一括入力）</option>`).join('');sel.innerHTML='<option value="">（なし）</option>'+genreOpts+bulkOpts;const cur=master.genreParent[g]||'';sel.value=cur;document.getElementById('genre-parent-form').style.display='block';}
 function saveGenreParent(){const val=document.getElementById('genre-parent-sel').value;if(val)master.genreParent[_parentTargetGenre]=val;else delete master.genreParent[_parentTargetGenre];sv('kk_master',master);closeGenreParentForm();renderGenreList();toast('設定しました ✓');}
 function clearGenreParent(){delete master.genreParent[_parentTargetGenre];sv('kk_master',master);closeGenreParentForm();renderGenreList();toast('解除しました');}
 function closeGenreParentForm(){document.getElementById('genre-parent-form').style.display='none';_parentTargetGenre='';}
@@ -1028,7 +1079,10 @@ function editGenre(i){const name=prompt('ジャンル名を変更',master.genres
 function renderBulkCatList(){const el=document.getElementById('bulk-cat-list');if(!el)return;if(bulkCats.length===0){el.innerHTML='<div class="fi-empty">カテゴリが未登録です</div>';return;}el.innerHTML=bulkCats.map(c=>`<div class="fi-item"><div class="fi-left"><div class="fi-name">${c.emoji} ${c.name}</div><div class="fi-meta">¥${c.price.toLocaleString()} ・ ${c.genre} ・ ${c.payment}</div></div><button class="fi-edit" onclick="editBulkCat('${c.id}')">編集</button><button class="fi-del" onclick="delBulkCat('${c.id}')">✕</button></div>`).join('');}
 function addBulkCat(){const name=document.getElementById('bc-name').value.trim();const emoji=document.getElementById('bc-emoji').value.trim()||'📦';const price=parseInt(document.getElementById('bc-price').value)||0;const genre=document.getElementById('bc-genre').value;const payment=document.getElementById('bc-pay').value;if(!name||!price){toast('名前と単価は必須です');return;}const cat={id:uid(),name,emoji,price,genre,payment};bulkCats.push(cat);sv('kk_bulkCats',bulkCats);document.getElementById('bc-name').value='';document.getElementById('bc-emoji').value='';document.getElementById('bc-price').value='';document.getElementById('bc-btn').disabled=true;document.getElementById('bc-btn').style.background='#c7c7cc';if(!selBulkId)selBulkId=cat.id;renderBulkCatList();renderBulkCatBtns();toast('カテゴリを追加しました ✓');}
 function delBulkCat(id){if(!confirm('削除しますか？'))return;bulkCats=bulkCats.filter(c=>c.id!==id);sv('kk_bulkCats',bulkCats);if(selBulkId===id)selBulkId=bulkCats[0]?.id||null;renderBulkCatList();renderBulkCatBtns();renderBmCal();toast('削除しました');}
-function editBulkCat(id){const c=bulkCats.find(x=>x.id===id);if(!c)return;const newName=prompt('名前',c.name);if(newName===null)return;const newEmoji=prompt('絵文字',c.emoji)||c.emoji;const newPrice=parseInt(prompt('単価',c.price))||c.price;c.name=newName.trim()||c.name;c.emoji=newEmoji;c.price=newPrice;sv('kk_bulkCats',bulkCats);renderBulkCatList();renderBulkCatBtns();toast('更新しました ✓');}
+function renderBulkCatList(){const el=document.getElementById('bulk-cat-list');if(!el)return;if(bulkCats.length===0){el.innerHTML='<div class="fi-empty">カテゴリが未登録です</div>';return;}el.innerHTML=bulkCats.map(c=>`<div class="fi-item"><div class="fi-left"><div class="fi-name">${c.emoji} ${c.name}</div><div class="fi-meta">¥${c.price.toLocaleString()} ・ ${c.genre} ・ ${c.payment}</div></div><button class="fi-edit" onclick="editBulkCat('${c.id}')">編集</button><button class="fi-del" onclick="delBulkCat('${c.id}')">✕</button></div>`).join('');}
+function editBulkCat(id){const c=bulkCats.find(x=>x.id===id);if(!c)return;document.getElementById('bce-id').value=id;document.getElementById('bce-name').value=c.name;document.getElementById('bce-emoji').value=c.emoji||'';document.getElementById('bce-price').value=c.price;const gs=master.genres,ps=master.payments;document.getElementById('bce-genre').innerHTML=gs.map(g=>`<option>${g}</option>`).join('');document.getElementById('bce-pay').innerHTML=ps.map(p=>`<option>${p}</option>`).join('');document.getElementById('bce-genre').value=c.genre;document.getElementById('bce-pay').value=c.payment;document.getElementById('bulk-cat-edit-form').style.display='block';document.getElementById('bulk-cat-edit-form').scrollIntoView({behavior:'smooth',block:'nearest'});}
+function saveBulkCatEdit(){const id=document.getElementById('bce-id').value;const c=bulkCats.find(x=>x.id===id);if(!c)return;c.name=document.getElementById('bce-name').value.trim()||c.name;c.emoji=document.getElementById('bce-emoji').value.trim()||c.emoji;c.price=parseInt(document.getElementById('bce-price').value)||c.price;c.genre=document.getElementById('bce-genre').value;c.payment=document.getElementById('bce-pay').value;sv('kk_bulkCats',bulkCats);closeBulkCatEditForm();renderBulkCatList();renderBulkCatBtns();toast('更新しました ✓');}
+function closeBulkCatEditForm(){document.getElementById('bulk-cat-edit-form').style.display='none';}
 function renderBulkCatBtns(){const wrap=document.getElementById('bm-cat-btns');if(!wrap)return;if(bulkCats.length===0){wrap.innerHTML='<div style="font-size:13px;color:var(--muted)">カテゴリを上の設定から追加してください</div>';document.getElementById('bm-selected-info').style.display='none';return;}wrap.innerHTML=bulkCats.map(c=>{const isActive=c.id===selBulkId;return `<button onclick="selectBulkCat('${c.id}')" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;border:2px solid ${isActive?'var(--accent)':'var(--border)'};background:${isActive?'var(--accent)':'var(--card)'};color:${isActive?'#fff':'var(--text)'};font-family:inherit;font-size:14px;font-weight:${isActive?700:400};cursor:pointer"><span>${c.emoji}</span><span>${c.name}</span></button>`;}).join('');updateBulkInfoPanel();}
 function selectBulkCat(id){selBulkId=id;bmSel.clear();renderBulkCatBtns();renderBmCal();updateBulkRegBtn();}
 function updateBulkInfoPanel(){const info=document.getElementById('bm-selected-info');if(!selBulkId||bulkCats.length===0){info.style.display='none';return;}const c=bulkCats.find(x=>x.id===selBulkId);if(!c){info.style.display='none';return;}info.style.display='block';document.getElementById('bm-sel-name').textContent=c.emoji+' '+c.name;document.getElementById('bm-sel-meta').textContent='デフォルト ¥'+c.price.toLocaleString()+' ・ '+c.genre+' ・ '+c.payment;document.getElementById('bm-price-override').placeholder=c.price;document.getElementById('bm-price-override').value='';}
