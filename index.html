@@ -988,13 +988,35 @@ function renderM(){
           const sg=key.slice(2);const sgTotal=rr.filter(r=>r.type==='out'&&r.genre===sg).reduce((s,r)=>s+r.amount,0);
           if(sgTotal===0)return null;
           const sgCol=gc(sg);
-          return `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px;border-bottom:1px solid #e8e2da"><div style="width:8px;height:8px;border-radius:50%;background:${sgCol};flex-shrink:0"></div><div style="flex:1;color:#666">└ ${sg}</div><div style="font-weight:700;color:${sgCol}">¥${sgTotal.toLocaleString()}</div><div style="font-size:10px;color:#aaa;min-width:30px;text-align:right">${Math.round(sgTotal/total*100)}%</div></div>`;
+          const subDetailId=`sd_${detailId}_${sg.replace(/\s/g,'_')}`;
+          const subRows=rr.filter(r=>r.type==='out'&&r.genre===sg).sort((a,b)=>a.date>b.date?1:-1).map(r=>`<div class="genre-detail-row"><div class="dr-date">${r.date.slice(5)}</div><div class="dr-title">${r.title}</div><div class="dr-amt">¥${r.amount.toLocaleString()}</div></div>`).join('');
+          return `<div>
+            <div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px;border-bottom:1px solid #e8e2da;cursor:pointer" onclick="toggleSubDetail('${subDetailId}',this)">
+              <div style="width:8px;height:8px;border-radius:50%;background:${sgCol};flex-shrink:0"></div>
+              <div style="flex:1;color:#666">└ ${sg}</div>
+              <div style="font-weight:700;color:${sgCol}">¥${sgTotal.toLocaleString()}</div>
+              <div style="font-size:10px;color:#aaa;min-width:30px;text-align:right">${Math.round(sgTotal/total*100)}%</div>
+              <span style="font-size:10px;color:#aaa;margin-left:2px">▶</span>
+            </div>
+            <div id="${subDetailId}" style="display:none;background:#faf8f5;border-radius:8px;padding:4px 8px;margin:2px 0 4px">${subRows}</div>
+          </div>`;
         }
         if(key.startsWith('b:')){
           const bc=bulkCats.find(c=>c.id===key.slice(2));if(!bc)return null;
           const bcTotal=rr.filter(r=>r.type==='out'&&r.bulkCatId===bc.id).reduce((s,r)=>s+r.amount,0);
           if(bcTotal===0)return null;
-          return `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px;border-bottom:1px solid #e8e2da"><div style="flex-shrink:0">${bc.emoji}</div><div style="flex:1;color:#666">└ ${bc.name}</div><div style="font-weight:700;color:#5b7e6e">¥${bcTotal.toLocaleString()}</div><div style="font-size:10px;color:#aaa;min-width:30px;text-align:right">${Math.round(bcTotal/total*100)}%</div></div>`;
+          const subDetailId=`sd_${detailId}_${bc.id}`;
+          const subRows=rr.filter(r=>r.type==='out'&&r.bulkCatId===bc.id).sort((a,b)=>a.date>b.date?1:-1).map(r=>`<div class="genre-detail-row"><div class="dr-date">${r.date.slice(5)}</div><div class="dr-title">${r.title}</div><div class="dr-amt">¥${r.amount.toLocaleString()}</div></div>`).join('');
+          return `<div>
+            <div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px;border-bottom:1px solid #e8e2da;cursor:pointer" onclick="toggleSubDetail('${subDetailId}',this)">
+              <div style="flex-shrink:0">${bc.emoji}</div>
+              <div style="flex:1;color:#666">└ ${bc.name}</div>
+              <div style="font-weight:700;color:#5b7e6e">¥${bcTotal.toLocaleString()}</div>
+              <div style="font-size:10px;color:#aaa;min-width:30px;text-align:right">${Math.round(bcTotal/total*100)}%</div>
+              <span style="font-size:10px;color:#aaa;margin-left:2px">▶</span>
+            </div>
+            <div id="${subDetailId}" style="display:none;background:#faf8f5;border-radius:8px;padding:4px 8px;margin:2px 0 4px">${subRows}</div>
+          </div>`;
         }
         return null;
       }).filter(Boolean);
@@ -1024,6 +1046,7 @@ function renderA(){
   renderPayBreakdown(records.filter(r=>r.date.startsWith(annY+'')&&r.type==='out'),'pay-bd-a');
 }
 
+function toggleSubDetail(id,row){const el=document.getElementById(id);if(!el)return;const isOpen=el.style.display==='none';el.style.display=isOpen?'block':'none';const chev=row.querySelector('span:last-child');if(chev)chev.style.transform=isOpen?'rotate(90deg)':'';}
 function handleGenreClick(rowEl){const id=rowEl.getAttribute('data-detail-id');if(!id)return;const el=document.getElementById(id);if(!el)return;const isOpen=el.classList.toggle('show');const chev=rowEl.querySelector('.gchevron');if(chev)chev.classList.toggle('open',isOpen);}
 const PAY_COLORS=['#007aff','#34c759','#ff9500','#af52de','#ff3b30','#00c7be','#ff6b35','#5856d6'];
 function renderPayBreakdown(outRecs,elId){const el=document.getElementById(elId);if(!el)return;if(outRecs.length===0){el.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">支出データがありません</div>';return;}const pm={};outRecs.forEach(r=>{pm[r.payment]=(pm[r.payment]||0)+r.amount});const sorted=Object.entries(pm).sort((a,b)=>b[1]-a[1]);const total=sorted.reduce((s,[,v])=>s+v,0);const maxV=sorted[0]?.[1]||1;let h='';sorted.forEach(([pay,amt],i)=>{const col=PAY_COLORS[i%PAY_COLORS.length];const pct=Math.round(amt/total*100);h+=`<div class="grow"><div class="gdot" style="background:${col}"></div><div class="gname">${pay}</div><div class="gtrack"><div class="gfill" style="width:${amt/maxV*100}%;background:${col}"></div></div><div style="text-align:right;min-width:90px"><div class="gamt" style="color:${col}">¥${amt.toLocaleString()}</div><div style="font-size:10px;color:var(--muted)">${pct}%</div></div></div>`;});el.innerHTML=h;}
