@@ -961,7 +961,17 @@ function renderM(){
   if(budget>0){const pct=Math.min(totalVarSpend/budget*100,100),over=totalVarSpend>budget;document.getElementById('b-fill').style.width=pct+'%';document.getElementById('b-fill').style.background=over?'#ff3b30':pct>80?'#ff9500':'#34c759';document.getElementById('b-pct').textContent=Math.round(totalVarSpend/budget*100)+'%';const spNote=specialTotal>0?` ／ 特別 ¥${specialTotal.toLocaleString()} 除く`:'';const exNote=excludeSpend>0?` ／ 除外 ¥${excludeSpend.toLocaleString()}`:'' ;document.getElementById('b-sub').textContent='変動費 ¥'+totalVarSpend.toLocaleString()+' / 予算 ¥'+budget.toLocaleString()+(over?' ⚠ 超過':'')+spNote+exNote;}
   else{document.getElementById('b-fill').style.width='0%';document.getElementById('b-pct').textContent='-';document.getElementById('b-sub').textContent='予算未設定';}
   const gmAll={},gmSp={};
-  rr.filter(r=>r.type==='out').forEach(r=>{gmAll[r.genre]=(gmAll[r.genre]||0)+r.amount;if(r.special)gmSp[r.genre]=(gmSp[r.genre]||0)+r.amount;});
+  // どのジャンル・一括カテゴリが誰かの内訳になっているか収集
+  const allChildren=Object.values(master.genreChildren).flat();
+  const hiddenGenres=new Set(allChildren.filter(k=>k.startsWith('g:')).map(k=>k.slice(2)));
+  const hiddenBulkIds=new Set(allChildren.filter(k=>k.startsWith('b:')).map(k=>k.slice(2)));
+  rr.filter(r=>r.type==='out').forEach(r=>{
+    // 内訳に設定された一括カテゴリは親ジャンルに合算
+    if(r.bulkCatId&&hiddenBulkIds.has(r.bulkCatId)) return; // 親側で内訳表示するのでここでは除外
+    if(hiddenGenres.has(r.genre)) return; // 内訳ジャンルも除外
+    gmAll[r.genre]=(gmAll[r.genre]||0)+r.amount;
+    if(r.special)gmSp[r.genre]=(gmSp[r.genre]||0)+r.amount;
+  });
   const sorted=Object.entries(gmAll).sort((a,b)=>b[1]-a[1]);const maxG=sorted[0]?.[1]||1;
   let h='';
   if(sorted.length===0)h='<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">支出データがありません</div>';
