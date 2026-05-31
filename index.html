@@ -990,21 +990,8 @@ function renderM(){
       }).filter(Boolean);
       if(items.length>0)subHtml=`<div style="margin:6px 0 4px;padding:6px 8px;background:#f0ede8;border-radius:8px">${items.join('')}</div>`;
     }
-    // 一括入力カテゴリ別内訳（このジャンルに属するもの）
-    const catSubs=bulkCats.filter(c=>c.genre===g);
-    let bulkSubHtml='';
-    if(catSubs.length>0){
-      const catTotals=catSubs.map(c=>({c,total:rr.filter(r=>r.type==='out'&&r.bulkCatId===c.id).reduce((s,r)=>s+r.amount,0)})).filter(x=>x.total>0);
-      if(catTotals.length>0){
-        bulkSubHtml='<div style="margin:6px 0 4px;padding:6px 8px;background:#f0f5f0;border-radius:8px">';
-        catTotals.forEach(({c,total:ct})=>{
-          bulkSubHtml+=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px;border-bottom:1px solid #e8e8e8"><div style="flex-shrink:0">${c.emoji}</div><div style="flex:1;color:#555">${c.name}</div><div style="font-weight:700;color:#5b7e6e">¥${ct.toLocaleString()}</div><div style="font-size:10px;color:#aaa">${Math.round(ct/total*100)}%</div></div>`;
-        });
-        bulkSubHtml+='</div>';
-      }
-    }
     const rows=rr.filter(r=>r.type==='out'&&r.genre===g).sort((a,b)=>a.date>b.date?1:-1).map(r=>`<div class="genre-detail-row"><div class="dr-date">${r.date.slice(5)}</div><div class="dr-title">${r.title}${r.special?'<span class="special-badge">特別</span>':''}</div><div class="dr-amt">¥${r.amount.toLocaleString()}</div></div>`).join('');
-    h+=`<div><div class="grow" data-detail-id="${detailId}" onclick="handleGenreClick(this)"><div class="gdot" style="background:${col}"></div><div class="gname">${g} ${spBadge}</div><div class="gtrack"><div class="gfill" style="width:${total/maxG*100}%;background:${col}"></div></div><div class="gamt" style="color:${col}">¥${total.toLocaleString()}</div><span class="gchevron">▶</span></div><div class="genre-detail" id="${detailId}">${subHtml}${bulkSubHtml}${rows}</div></div>`;
+    h+=`<div><div class="grow" data-detail-id="${detailId}" onclick="handleGenreClick(this)"><div class="gdot" style="background:${col}"></div><div class="gname">${g} ${spBadge}</div><div class="gtrack"><div class="gfill" style="width:${total/maxG*100}%;background:${col}"></div></div><div class="gamt" style="color:${col}">¥${total.toLocaleString()}</div><span class="gchevron">▶</span></div><div class="genre-detail" id="${detailId}">${subHtml}${rows}</div></div>`;
   });
   document.getElementById('genre-bd').innerHTML=h;
   renderPayBreakdown(rr.filter(r=>r.type==='out'),'pay-bd-m');
