@@ -1050,9 +1050,9 @@ function renderM(){
         }
         return null;
       }).filter(Boolean);
-      if(items.length>0)subHtml=`<div style="margin:6px 0 4px;padding:6px 8px;background:#f0ede8;border-radius:8px">${ownLine}${items.join('')}</div>`;
+      if(items.length>0||ownLine)subHtml=`<div style="margin:6px 0 4px;padding:6px 8px;background:#f0ede8;border-radius:8px">${ownLine}${items.join('')}</div>`;
     }
-    const rows=children.length>0?'':rr.filter(r=>r.type==='out'&&r.genre===g&&!(r.bulkCatId&&hiddenBulkIds.has(r.bulkCatId))).sort((a,b)=>a.date>b.date?1:-1).map(r=>`<div class="genre-detail-row"><div class="dr-date">${r.date.slice(5)}</div><div class="dr-title">${r.title}${r.special?'<span class="special-badge">特別</span>':''}</div><div class="dr-amt">¥${r.amount.toLocaleString()}</div></div>`).join('');
+    const rows=(!subHtml)?rr.filter(r=>r.type==='out'&&r.genre===g&&!(r.bulkCatId&&hiddenBulkIds.has(r.bulkCatId))).sort((a,b)=>a.date>b.date?1:-1).map(r=>`<div class="genre-detail-row"><div class="dr-date">${r.date.slice(5)}</div><div class="dr-title">${r.title}${r.special?'<span class="special-badge">特別</span>':''}</div><div class="dr-amt">¥${r.amount.toLocaleString()}</div></div>`).join(''):'';
     h+=`<div><div class="grow" data-detail-id="${detailId}" onclick="handleGenreClick(this)"><div class="gdot" style="background:${col}"></div><div class="gname">${g} ${spBadge}</div><div class="gtrack"><div class="gfill" style="width:${total/maxG*100}%;background:${col}"></div></div><div class="gamt" style="color:${col}">¥${total.toLocaleString()}</div><span class="gchevron">▶</span></div><div class="genre-detail" id="${detailId}">${subHtml}${rows}</div></div>`;
   });
   document.getElementById('genre-bd').innerHTML=h;
