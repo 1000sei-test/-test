@@ -655,10 +655,8 @@ let records=JSON.parse(localStorage.getItem('kk_records')||'[]');
 let budgets=JSON.parse(localStorage.getItem('kk_budgets')||'{}');
 let capLimits=JSON.parse(localStorage.getItem('kk_cap_limits')||'{}');
 let fixed=JSON.parse(localStorage.getItem('kk_fixed')||'[]');
-let master=JSON.parse(localStorage.getItem('kk_master')||JSON.stringify({payments:['現金','リクルート','Olive','PayPay'],genres:['食費','外食','趣味','旅行・観光','交通費','車','弁当代','日用品','医療','給与','その他'],cards:[],excludeGenres:[]}));
-if(!master.excludeGenres) master.excludeGenres=[];
-if(!master.genreBudgetCap) master.genreBudgetCap={};
-if(!master.genreParent) master.genreParent={};
+let master=JSON.parse(localStorage.getItem('kk_master')||JSON.stringify({payments:['現金','リクルート','Olive','PayPay'],genres:['食費','外食','趣味','旅行・観光','交通費','車','弁当代','日用品','医療','給与','その他'],cards:[],genreChildren:{}}));
+if(!master.genreChildren) master.genreChildren={};
 if(!master.genreChildren) master.genreChildren={};
 let bulkCats=JSON.parse(localStorage.getItem('kk_bulkCats')||JSON.stringify([{id:'bc_default',name:'弁当代',emoji:'🍱',price:500,genre:'弁当代',payment:'現金'}]));
 let selBulkId=bulkCats[0]?.id||null;
@@ -1108,11 +1106,6 @@ function addPayment(){const name=document.getElementById('pay-new-name').value.t
 function delPayment(i){if(!confirm(`「${master.payments[i]}」を削除しますか？`))return;master.payments.splice(i,1);sv('kk_master',master);applyMaster();renderPayList();toast('削除しました');}
 function editPayment(i){const name=prompt('支払い方法名を変更',master.payments[i]);if(!name||!name.trim())return;master.payments[i]=name.trim();sv('kk_master',master);applyMaster();renderPayList();toast('更新しました ✓');}
 function renderGenreList(){const el=document.getElementById('genre-list');if(!el)return;if(!master.genres.length){el.innerHTML='<div class="fi-empty">ジャンルが未登録です</div>';return;}el.innerHTML=master.genres.map((g,i)=>{const children=master.genreChildren[g]||[];const hasChildren=children.length>0;const childNames=children.map(k=>{if(k.startsWith('g:'))return k.slice(2);if(k.startsWith('b:')){const c=bulkCats.find(x=>x.id===k.slice(2));return c?c.emoji+c.name:'';}return '';}).filter(Boolean).join('・');return `<div class="fi-item"><div style="display:flex;flex-direction:column;gap:2px;margin-right:6px"><button onclick="moveItem('genre',${i},-1)" style="border:none;background:none;font-size:14px;cursor:pointer;color:${i===0?'#ddd':'#a89880'};padding:0;line-height:1" ${i===0?'disabled':''}>▲</button><button onclick="moveItem('genre',${i},1)" style="border:none;background:none;font-size:14px;cursor:pointer;color:${i===master.genres.length-1?'#ddd':'#a89880'};padding:0;line-height:1" ${i===master.genres.length-1?'disabled':''}>▼</button></div><div class="fi-left"><div class="fi-name">${g}</div>${hasChildren?`<div class="fi-meta" style="color:#4a70a8">📊 内訳: ${childNames}</div>`:''}</div><button onclick="setGenreParent('${g}')" style="border:1.5px solid ${hasChildren?'#4a70a8':'var(--border)'};background:${hasChildren?'#e8f0ff':'none'};color:${hasChildren?'#4a70a8':'var(--muted)'};font-size:11px;font-weight:700;cursor:pointer;padding:4px 8px;border-radius:7px;font-family:inherit;white-space:nowrap">${hasChildren?`内訳${children.length}件`:'内訳設定'}</button><button class="fi-edit" onclick="editGenre(${i})">編集</button><button class="fi-del" onclick="delGenre(${i})">✕</button></div>`;}).join('');}
-let _capTargetGenre='';
-function setGenreCap(g){_capTargetGenre=g;document.getElementById('genre-cap-label').textContent=g;document.getElementById('genre-cap-inp').value=master.genreBudgetCap[g]||'';document.getElementById('genre-cap-form').style.display='block';document.getElementById('genre-cap-inp').focus();}
-function saveGenreCap(){const num=parseInt(document.getElementById('genre-cap-inp').value)||0;if(num>0){master.genreBudgetCap[_capTargetGenre]=num;toast(`「${_capTargetGenre}」月${num.toLocaleString()}円まで予算除外`);}else{delete master.genreBudgetCap[_capTargetGenre];toast('解除しました');}sv('kk_master',master);closeGenreCapForm();renderGenreList();}
-function clearGenreCap(){delete master.genreBudgetCap[_capTargetGenre];sv('kk_master',master);closeGenreCapForm();renderGenreList();toast('解除しました');}
-function closeGenreCapForm(){document.getElementById('genre-cap-form').style.display='none';document.getElementById('genre-cap-inp').value='';_capTargetGenre='';}
 let _parentTargetGenre='';
 function setGenreParent(g){
   _parentTargetGenre=g;
